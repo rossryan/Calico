@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="calico.css">
+<TITLE>Test</TITLE>
+
+
+</HEAD>
+<BODY style="background-image:url('DrexelLogo.png'); background-repeat:no-repeat; background-position:right top; background-color:#21467B;position:relative;z-index:0;">
+<script type="text/javascript">
+
+function show_alert()
+{
+alert("I am an alert box!");
+}
+
+function doSomething(e, value) {
+
+	
+	var rightclick;
+	if (!e) var e = window.event;
+	if (e.which) rightclick = (e.which == 3);
+	else if(e.button) rightclick = (e.button == 2); //{ //{
+	
+	if(rightclick) {	
+		var posx = 0;
+		var posy = 0;
+		if (!e) var e = window.event;
+		if (e.pageX || e.pageY) 	{
+			posx = e.pageX;
+			posy = e.pageY;
+		}
+		else if (e.clientX || e.clientY) 	{
+			posx = e.clientX + document.body.scrollLeft
+				+ document.documentElement.scrollLeft;
+			posy = e.clientY + document.body.scrollTop
+				+ document.documentElement.scrollTop;
+		}
+		//document.getElementById("ContextMenu").style.position = "fixed";
+		document.getElementById("ContextMenu").style.left = posx + "px";
+		document.getElementById("ContextMenu").style.top = posy + "px";
+		document.getElementById("ContextMenu").style.visibility = "visible";
+		
+		//alert('X Pos: ' + xpos);
+		//alert('Y Pos: ' + ypos);
+		//}
+		//alert("Xpos: " + posx);
+		//alert("Ypos: " + posy);
+		
+		
+		e.cancelBubble = true;
+		if (e.stopPropagation) e.stopPropagation();
+	}
+	//alert('Rightclick: ' + rightclick); // true or false
+	
+}
+
+function HideMenu(e) {
+
+	var rightclick;
+	if (!e) var e = window.event;
+	if (e.which) rightclick = (e.which == 3);
+	else if(e.button) rightclick = (e.button == 2); //{ //{
+	document.getElementById("ContextMenu").style.visibility = "hidden";
+
+}
+</script>
+
+<div style="z-index:1;"> 
+<div style="z-index:2">
+<BR><BR>
+<input class="standardButton" style="background-image:url('arrow-left.png');background-repeat:no-repeat; position:relative;z-index:3;" type="submit" value="my button">
+</div>
+</div>
+<div class="slidingPane" style="visibility:visible;position:relative;z-index:3;">
+Title: <input type="text" style="position:relative;z-index:5;" name="summary" size="80"><BR>
+Location: <input type="text" style="position:relative;z-index:5;" name="location" size="80"><BR>
+</div>
+
+
+
+
+<div class="menuBackground" id = "ContextMenu" style="visibility:hidden;position:fixed;z-index:3;">
+<input class="menuButton" style="position:relative;z-index:4;" type="submit" value="Some Text">
+<BR>
+<input class="menuButton" style="position:relative;z-index:4;" type="submit" value="And More">
+<BR>
+<input class="menuButton" style="position:relative;z-index:4;" type="submit" value="And Even More">
+</div>
+</div>
+
+<div id=”mainselection”>
+<select>
+<option>Test</option>
+<option>Test</option>
+<option>Test</option>
+<option>Test</option>
+</select>
+</div>
+
+</BODY>
+</HTML>
