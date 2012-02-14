@@ -65,7 +65,13 @@
 
 
         public function __construct($User) {
+            $query = "SELECT [CalendarID] FROM [Calendars] WHERE [Displayed] = 1 AND [UserID] = '" . $User->GetUserID() . "';";
+            $data = SQL::DataQuery($query);
 
+            while($row = mysql_fetch_array($data))
+            {
+                $this->CalendarList[] = new Calendar($User, $row['CalendarID']);
+            }
 
         }
 
@@ -80,8 +86,17 @@
         private $CalendarName = "";
         private $SuperFeedList = Array();
 
-        public function __construct() {
+        // @todo: Rewrite this more intelligently.
+        public function __construct($User, $CalendarID) {
+            $this->SQL_ID = $CalendarID;
 
+            $query = "SELECT [SuperFeedID] FROM [SuperFeeds] WHERE [CalendarID] = '" . $CalendarID . "';";
+            $data = SQL::DataQuery($query);
+
+            while($row = mysql_fetch_array($data))
+            {
+                $this->SuperFeedList[] = new SuperFeed($User, $row['SuperFeedID']);
+            }
 
         }
 
@@ -94,10 +109,12 @@
     class SuperFeed {
         private $SQL_ID = "";
         private $URL = "";
+        private $FeedUsername = "";
+        private $FeedPassword = "";
 
         private $EventList = Array();
 
-
+        // @todo: Rewrite this more intelligently.
         public function __construct() {
 
 
@@ -108,6 +125,8 @@
     class Event {
         private $URL = "";
         private $ETAG = "";
+        private $FeedUsername = "";
+        private $FeedPassword = "";
 
 
         public function __construct() {
@@ -140,19 +159,21 @@
         //@todo: Get the User object to actually talk to the other classes. Lol.
 
         public function __construct($Username, $Password) {
+            // Probably want to Base64 encode the values going into and out of the MySQL database, to prevent a SQL Injection attack.
+            $query = "SELECT [UserID] FROM [Users] WHERE [Username] = '" . base64_encode($Username) . "' AND [Password] = '" . base64_encode($Password) . "';";
+            $data = SQL::DataQuery($query);
 
+            $this->SQL_ID = $data["UserID"];
 
         }
 
-        // Boolean function to tell us if we have a valid user.
+        // Boolean function to tell us if we have a valid user. Might be able to merge this into the constructor.
         public function IsValid() {
-            if($this->SQL_ID != "") {
-                return true;
-            }
-            else {
+            if($this->SQL_ID == "") {
                 return false;
             }
 
+            return true;
         }
 
         public function GetUserID() {
@@ -165,7 +186,45 @@
 
     }
 
+    // SQL -> a basic data access layer for SQL servers. MySQL doesn't seem to differentiate between data and non-data queries, but other databases do.
+    class SQL {
 
+        // Keeping these as constants for now. Might be a good idea to pull them out into an XML file at some point.
+        const Server = "localhost";
+        const Username = "root";
+        const Password = "mysql";
+        const Database = "calico";
+
+
+        public static function DataQuery($Query) {
+            $connection = mysql_connect(Server, Username, Password);
+
+            if (!$connection)
+            {
+                die('Could not connect: ' . mysql_error());
+            }
+
+            mysql_select_db(Database, $connection);
+            $data = mysql_query($Query);
+
+            return mysql_fetch_array($data);
+        }
+
+
+        public static function NonDataQuery($Query) {
+            $connection = mysql_connect(Server, Username, Password);
+
+            if (!$connection)
+            {
+                die('Could not connect: ' . mysql_error());
+            }
+
+            mysql_select_db(Database, $connection);
+            mysql_query($Query);
+
+        }
+
+    }
 
 
 
