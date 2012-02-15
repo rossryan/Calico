@@ -14,7 +14,15 @@
  *
  * I think I'll rederive the interactions between the various interfaces before proceeding further.
  *
- *
+ * Notes for any future programmer:
+ * 1.) I used Fiddler to debug these HTTP requests (you might want that, if you are running on Windows).
+ * 2.) I used PHPStorm (an IDE from JetBrains) after getting fed up with NetBeans. They offer free licenses for Open-Source projects with the appropriate documentation.
+ * 3.) I used PHP on IIS on Windows (home machine) for development, and production testing is done with PHP on Apache on an Ubuntu box. Getting PHP configured correctly on IIS takes some effort.
+ * 4.) IRC (Internet Relay Chat) is the preferred method to get in touch with Davical's creator (Andrew McMillan). Server: irc.oftc.net, Channel: #davical (reponses can take up to 24-48 hours, but they do respond).
+ *     The community here is fairly decent (they won't give you the third-degree for asking questions / not knowing something).
+ * 5.) No warranty is offered for any of this code, and you may not sue me. Use at your own risk. ^_^
+ * 6.) I used XDebug as my debugger for PHP, having gotten tired of combing through the log files looking for errors (when they actually bother to appear...).
+ *     If / when you get tired of the same, take a look at XDebug (it's free). I think it works with even Notepad++ (http://amiworks.co.in/talk/debugging-php-using-xdebug-and-notepad-part-i/) & VIM.
  */
 
 
@@ -70,7 +78,7 @@
 
             while($row = mysql_fetch_array($data))
             {
-                $this->CalendarList[] = new Calendar($User, $row['CalendarID']);
+                $this->CalendarList[] = new Calendar($row['CalendarID']);
             }
 
         }
@@ -86,8 +94,9 @@
         private $CalendarName = "";
         private $SuperFeedList = Array();
 
-        // @todo: Rewrite this more intelligently.
-        public function __construct($User, $CalendarID) {
+        // @todo: Rewrite this more intelligently. Should I merge Calendar Add responsbilities into this class, or keep it separate?
+        //@todo: Additionally, what arguments should I use to create this object? Is User necessary? Should I create the Calendar from it's ID? Or should I provide everything?
+        public function __construct($CalendarID) {
             $this->SQL_ID = $CalendarID;
 
             $query = "SELECT [SuperFeedID] FROM [SuperFeeds] WHERE [CalendarID] = '" . $CalendarID . "';";
@@ -95,7 +104,7 @@
 
             while($row = mysql_fetch_array($data))
             {
-                $this->SuperFeedList[] = new SuperFeed($User, $row['SuperFeedID']);
+                $this->SuperFeedList[] = new SuperFeed($row['SuperFeedID']);
             }
 
         }
@@ -115,7 +124,23 @@
         private $EventList = Array();
 
         // @todo: Rewrite this more intelligently.
-        public function __construct() {
+        public function __construct($SuperFeedID) {
+            $this->SQL_ID = $SuperFeedID;
+
+            $query = "SELECT [URL], [FeedUsername], [FeedPassword] FROM [SuperFeeds] WHERE [SuperFeedID] = '" . $SuperFeedID . "';";
+            $data = SQL::DataQuery($query);
+
+            while($row = mysql_fetch_array($data))
+            {
+                // @todo: Contact the actual resource for each event contained in the superfeed, then pass it off to the event for parsing.
+
+
+                $row['URL'];
+                $row['FeedUsername'];
+                $row['FeedPassword'];
+
+                $this->EventList[] = new Event();
+            }
 
 
         }
@@ -135,20 +160,35 @@
         }
 
 
-        public function Update() {
+
+
+
+
+    }
+
+    // HTTPRequests -> PHP seems to be lacking a lot of the WebDav / CalDav extensions. I'm abstracting these from the V1 versions, so future edits (ostensibly by other programmers) will be easier.
+    class HTTPRequests {
+
+        public function Put($URL, $Headers, $Content) {
 
 
         }
 
-        public function Delete() {
+        public function Report($URL, $Headers, $Content) {
 
-        }
-
-        public function Create() {
 
         }
 
 
+        public function Propfind($URL, $Headers, $Content) {
+
+
+        }
+
+
+        public function Delete($URL, $Headers, $Content) {
+
+        }
 
 
     }
@@ -195,7 +235,7 @@
         const Password = "mysql";
         const Database = "calico";
 
-
+        // @todo: Perhaps better error handling here?
         public static function DataQuery($Query) {
             $connection = mysql_connect(Server, Username, Password);
 
@@ -207,7 +247,7 @@
             mysql_select_db(Database, $connection);
             $data = mysql_query($Query);
 
-            return mysql_fetch_array($data);
+            return $data;
         }
 
 
