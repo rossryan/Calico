@@ -14,7 +14,7 @@
  *
  * I think I'll rederive the interactions between the various interfaces before proceeding further.
  *
- * Notes for any future programmer:
+ * Notes for any future programmer:         
  * 1.) I used Fiddler to debug these HTTP requests (you might want that, if you are running on Windows).
  * 2.) I used PHPStorm (an IDE from JetBrains) after getting fed up with NetBeans. They offer free licenses for Open-Source projects with the appropriate documentation.
  * 3.) I used PHP on IIS on Windows (home machine) for development, and production testing is done with PHP on Apache on an Ubuntu box. Getting PHP configured correctly on IIS takes some effort.
