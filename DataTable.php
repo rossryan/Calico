@@ -9,6 +9,9 @@
 
     // DataTable -> a copy off of the DataTable class from .Net. Thus far, it implements only the most commonly used features.
     // Feel free to extend it if you like it.
+
+    //@todo: Ensure the class throws Exceptions when it does somethint stupid.
+    //@todo: Synchronize variable names to keep things consistent.
     class DataTable
     {
         private $Rows;
@@ -18,7 +21,6 @@
 
         public function __construct($TableName = "") {
             $this->TableName = $TableName;
-
         }
 
        public function Columns() {
@@ -48,6 +50,8 @@
             $this->Columns = Array();
         }
 
+        //@todo: Finish Copy mechanism later on.
+        /*
         public function Copy() {
             $newTable = new DataTable($this->GetTableName());
             foreach($this->Columns as $Column) {
@@ -57,12 +61,19 @@
 
             }
         }
+        */
+
 
         public function NewRow() {
             return new DataRow($this);
         }
 
         public function ToString() {
+            $s = "";
+            $s .= $this->Columns->ToString();
+            $s .= $this->Rows->ToString();
+
+            return $s;
 
         }
 
@@ -97,29 +108,64 @@
             return $this->DataTable;
         }
 
+        public function ToString() {
+            $s = "";
+            for($i = 0; $i < count($this->ObjectArray); $i++) {
+                $s .= $this->ObjectArray[$i]->ToString();
+            }
+
+            return $s;
+
+        }
+
     }
 
     class DataRowCollection {
         private $Rows = Array();
+        private $Table;
 
-        public function __construct() {
+        public function __construct($Table) {
+            $this->Table = $Table;
+        }
 
+        //@todo: Overload this function later to accept an array of DataRows.
+        public function Add($DataRow) {
+            $this->Rows[] = $DataRow;
         }
 
         public function Count() {
             return count($this->Rows);
-
         }
 
         public function Clear() {
             $this->Rows = Array();
         }
 
-        public function Find() {
+        public function Find($Key) {
+            for($i = 0; $i < $this->Rows; $i++) {
+                for($j = 0; $j < $this->Table->Columns()->Count(); $j++) {
+                    if($Key == $this->Rows[$i]->GetField($j)) {
+                        return $this->Rows[$i];
+                    }
+                }
+            }
+
+            return null;
 
         }
 
         public function Remove($DataRow) {
+
+            $i = 0;
+            while($i < $this->Rows->Count()) {
+                if($this->Rows[$i] == $DataRow) {
+                    unset($this->Rows[$i]);
+                }
+                else {
+                    $i++;
+                }
+            }
+
 
         }
 
@@ -128,11 +174,17 @@
         }
 
         public function ToString() {
+            $s = "";
+            for($i = 0; $i < $this->Rows->Count(); $i++) {
+                $s .= $this->Rows[$i]->ToString();
+            }
+
+            return $s;
 
         }
 
-        public function InsertAt($Index) {
-
+        public function InsertAt($Index, $DataRow) {
+            array_splice($this->Rows, $Index, 0, $DataRow);
         }
 
         public function Contains($DataRow) {
@@ -192,14 +244,18 @@
             }
         }
 
+        public function ToString() {
+            return $this->ColumnName;
+        }
+
     }
 
     class DataColumnCollection {
         private $Columns = Array();
+        private $Table;
 
-
-        public function __construct() {
-
+        public function __construct($Table) {
+            $this->Table = $Table;
         }
 
         public function Count() {
@@ -229,8 +285,15 @@
         }
 
         public function Remove($Column) {
-            //@todo: Keep an eye on this function. Since we are removing the object from the array, not from an index, there may be many references to the object contained therein.
-            // Will need a while loop here.
+            $i = 0;
+            while($i < $this->Columns->Count()) {
+                if($this->Columns[$i] == $Column) {
+                    unset($this->Columns[$i]);
+                }
+                else {
+                    $i++;
+                }
+            }
         }
 
         public function RemoveAt($Index) {
@@ -238,6 +301,12 @@
         }
 
         public function ToString() {
+            $s = "";
+            for($i = 0; $i < $this->Columns->Count(); $i++) {
+                $s .= $this->Columns[$i]->ToString();
+            }
+
+            return $s;
 
         }
 

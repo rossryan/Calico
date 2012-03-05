@@ -51,7 +51,18 @@
     // TSInfoExtractor -> going to play around with this one. I'm splitting the former Helper class into two, so it better differentiates various functions.
     class TimeInfo {
 
-        const DayOfTheWeek_toString = "DayOfTheWeek_toString";
+        const NumberOfDaysInMonth = "NumberOfDaysInMonth";
+        const DayOfTheWeek = "DayOfTheWeek";
+        const Year = "Year";
+        const Month = "Month";
+        const Week = "Week";
+        const Day = "Day";
+        const Hour = "Hour";
+        const Second = "Second";
+
+        const String = "String";
+        const Integer = "Integer";
+        //const Timestamp = "Timestamp";
 
         // Extract information from a timestamp.
         public static function Extract($timestamp, $arg) {
@@ -66,8 +77,14 @@
     }
 
     class CompositeDropDown {
-        public function __construct() {
+        private $HTMLName = "CompositeDropDownControl";
+        private $CSSClass = "CompositeDropDownControl";
+        private $User;
 
+
+        public function __construct($User) {
+            $this->User = $User;
+            Refresh();
         }
 
         public function Draw() {
@@ -77,14 +94,14 @@
         private function RenderControl() {
             $html = "";
 
-            $html .= "<DIV>";
+            $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
 
             $html .= "</DIV>";
 
             return $html;
         }
 
-        public function Refresh() {
+        private function GetDefaultViews() {
             $query = "SELECT [DefaultView] FROM [Settings] WHERE [UserID] = '" . $this->User->GetUserID() . "';";
             $data = SQL::DataQuery($query);
 
@@ -97,18 +114,47 @@
 
         }
 
+        public function Refresh() {
+           $this->GetDefaultViews();
+
+        }
+
         // Prototype -> Takes in an HTML element id, plus its associated value. Will have to write something more complete here.
-        public function Update($ID, $Value) {
+        public function Update($HTMLName, $Value) {
+            if(!($HTMLName == $this->HTMLName)) {
+                return;
+            }
+
 
 
         }
 
+        public function CSSClass($CSSClass = null) {
+            if($CSSClass == null) {
+                return $this->CSSClass;
+            }
+            else {
+                $this->CSSClass = $CSSClass;
+            }
+        }
+
+        public function HTMLName($HTMLName = null) {
+            if($HTMLName == null) {
+                return $this->HTMLName;
+            }
+            else {
+                $this->HTMLName = $HTMLName;
+            }
+        }
 
     }
 
     class CompositeCheckBox {
         private $User;
         private $CalendarNameList = Array(); //@todo: Use a DataTable here for the information. Should be cleaner.
+        private $CalendarDatatable;
+        private $HTMLName = "CompositeCheckBoxControl";
+        private $CSSClass = "CompositeCheckBoxControl";
 
         public function __construct($User) {
 
@@ -120,10 +166,10 @@
         private function RenderControl() {
             $html = "";
 
-            $html .= "<DIV>";
+            $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
 
             foreach($this->CalendarNameList as $key => $value) {
-                $html .= "";
+                $html .= ""; //@todo: Put name in here.
                 $html .= "<INPUT TYPE=\"checkbox\" NAME=\"vehicle\" VALUE=\"Bike\" />";
             }
 
@@ -142,17 +188,43 @@
 
             $query = "SELECT [CalendarID], [CalendarName], [Displayed] FROM [Calendars] WHERE [UserID] = '" . $this->User->GetUserID() . "';";
             $data = SQL::DataQuery($query);
+            $this->CalendarDatatable = new DataTable();
+            //$this->CalendarDatatable
 
             while($row = mysql_fetch_array($data))
             {
-                $this->CalendarList[$row['CalendarName']] = $row['Displayed'];
+
+                $row['CalendarName'];
+                $this->CalendarList[] = $row['Displayed'];
             }
 
         }
 
-        public function Update($ID, $Value) {
+        public function Update($HTMLName, $Value) {
+            if(!($HTMLName == $this->HTMLName)) {
+                return;
+            }
 
 
+
+        }
+
+        public function CSSClass($CSSClass = null) {
+            if($CSSClass == null) {
+                return $this->CSSClass;
+            }
+            else {
+                $this->CSSClass = $CSSClass;
+            }
+        }
+
+        public function HTMLName($HTMLName = null) {
+            if($HTMLName == null) {
+                return $this->HTMLName;
+            }
+            else {
+                $this->HTMLName = $HTMLName;
+            }
         }
 
 
@@ -169,6 +241,9 @@
         const Weekly = 1;
         const Daily = 2;
 
+        private $HTMLName = "CompositeCalendarControl";
+        private $CSSClass = "CompositeCalendarControl";
+
 
         public function __construct($User) {
             $this->User = $User;
@@ -182,7 +257,7 @@
         public function RenderControl() {
             $html = "";
 
-            $html .= "<DIV>";
+            $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
 
             $html .= RenderView();
 
@@ -239,7 +314,7 @@
 
         public function Refresh() {
 
-            $query = "SELECT [CalendarID] FROM [Calendars] WHERE [Displayed] = 1 AND [UserID] = '" . $User->GetUserID() . "';";
+            $query = "SELECT [CalendarID] FROM [Calendars] WHERE [Displayed] = 1 AND [UserID] = '" . $this->User->GetUserID() . "';";
             $data = SQL::DataQuery($query);
 
             while($row = mysql_fetch_array($data))
@@ -247,6 +322,33 @@
                 $this->CalendarList[] = new Calendar($row['CalendarID']);
             }
 
+        }
+
+        public function Update($HTMLName, $Value) {
+            if(!($HTMLName == $this->HTMLName)) {
+                return;
+            }
+
+
+
+        }
+
+        public function CSSClass($CSSClass = null) {
+            if($CSSClass == null) {
+                return $this->CSSClass;
+            }
+            else {
+                $this->CSSClass = $CSSClass;
+            }
+        }
+
+        public function HTMLName($HTMLName = null) {
+            if($HTMLName == null) {
+                return $this->HTMLName;
+            }
+            else {
+                $this->HTMLName = $HTMLName;
+            }
         }
 
 
@@ -265,7 +367,10 @@
         //@todo: Additionally, what arguments should I use to create this object? Is User necessary? Should I create the Calendar from it's ID? Or should I provide everything?
         public function __construct($CalendarID) {
             $this->SQL_ID = $CalendarID;
+            Refresh();
+        }
 
+        public function Refresh() {
             $query = "SELECT [SuperFeedID] FROM [SuperFeeds] WHERE [CalendarID] = '" . $CalendarID . "';";
             $data = SQL::DataQuery($query);
 
@@ -294,8 +399,11 @@
         // @todo: Rewrite this more intelligently.
         public function __construct($SuperFeedID) {
             $this->SQL_ID = $SuperFeedID;
+            Refresh();
+        }
 
-            $query = "SELECT [URL], [FeedUsername], [FeedPassword] FROM [SuperFeeds] WHERE [SuperFeedID] = '" . $SuperFeedID . "';";
+        public function Refresh() {
+            $query = "SELECT [URL], [FeedUsername], [FeedPassword] FROM [SuperFeeds] WHERE [SuperFeedID] = '" . $this->SuperFeedID . "';";
             $data = SQL::DataQuery($query);
 
             while($row = mysql_fetch_array($data))
@@ -310,8 +418,19 @@
                 $this->EventList[] = new Event();
             }
 
-
         }
+
+
+
+
+        private function ParsePropfind($String) {
+
+            $Xml = new SimpleXMLElement($String);
+            $URL = $Xml->xpath("/multistatus/response/href"); // Modify these for iteration.
+            $Etag = $Xml->xpath("/multistatus/response/propstat/prop/getetag");
+        }
+
+
     }
 
     // Event -> class for storing event information. Due to this redesign, Event will now be handling some of the functions previously found in the Feed class.
@@ -327,9 +446,27 @@
 
         }
 
+        public function Refresh() {
+
+        }
+
+        // @todo: Flesh this out. Might need to move / copy a variant to the Event class.
+        private function ParsePropfind($String) {
+            $Xml = new SimpleXMLElement($String);
+            $Etag = $Xml->xpath("/multistatus/response/propstat/prop/getetag");
+            $CCalendarData = $Xml->xpath("/multistatus/response/propstat/prop/C:calendar-data");
+
+        }
 
 
 
+        private function ParseDelete() {
+
+        }
+
+        private function ParseReport() {
+
+        }
 
 
     }
@@ -494,6 +631,8 @@
     // Login -> a control to handle the login aspect of things. Will be a GUI control.
     class Login {
         private $User;
+        private $HTMLName = "LoginControl";
+        private $CSSClass = "LoginControl";
 
         public function __construct() {
 
@@ -502,8 +641,12 @@
         private function RenderControl() {
             $html = "";
 
-            $html .= "<DIV>";
-
+            $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
+            $html .= "Username:";
+            $html .= "<INPUT TYPE=\"text\" NAME=\"Username\">";
+            $html .= "Password:";
+            $html .= "<INPUT TYPE=\"text\" NAME=\"Password\">";
+            $html .= "<INPUT TYPE=\"submit\" VALUE=\"Login\">";
             $html .= "</DIV>";
 
             return $html;
@@ -521,6 +664,37 @@
 
         public function GetUser() {
             return $this->User;
+        }
+
+        public function Refresh() {
+
+        }
+
+        public function Update($HTMLName, $Value) {
+            if(!($HTMLName == $this->HTMLName)) {
+                return;
+            }
+
+
+
+        }
+
+        public function CSSClass($CSSClass = null) {
+            if($CSSClass == null) {
+                return $this->CSSClass;
+            }
+            else {
+                $this->CSSClass = $CSSClass;
+            }
+        }
+
+        public function HTMLName($HTMLName = null) {
+            if($HTMLName == null) {
+                return $this->HTMLName;
+            }
+            else {
+                $this->HTMLName = $HTMLName;
+            }
         }
 
 
@@ -562,16 +736,18 @@
 
     class CalendarManager {
         private $User;
+        private $HTMLName = "CalendarManagerControl";
+        private $CSSClass = "CalendarManagerControl";
 
         public function __construct($User) {
             $this->User = $User;
-
+            Refresh();
         }
 
         private function RenderControl() {
             $html = "";
 
-            $html .= "<DIV>";
+            $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
 
             $html .= "</DIV>";
 
@@ -580,22 +756,56 @@
 
         public function Draw() {
             echo RenderControl();
+        }
+
+        public function Refresh() {
+
+        }
+
+        public function Update($HTMLName, $Value) {
+            if(!($HTMLName == $this->HTMLName)) {
+                return;
+            }
+
+
+
+        }
+
+        public function CSSClass($CSSClass = null) {
+            if($CSSClass == null) {
+                return $this->CSSClass;
+            }
+            else {
+                $this->CSSClass = $CSSClass;
+            }
+        }
+
+        public function HTMLName($HTMLName = null) {
+            if($HTMLName == null) {
+                return $this->HTMLName;
+            }
+            else {
+                $this->HTMLName = $HTMLName;
+            }
         }
 
     }
 
     class SuperFeedManager {
         private $User;
+        private $HTMLName = "SuperFeedManagerControl";
+        private $CSSClass = "SuperFeedManagerControl";
 
         public function __construct($User) {
             $this->User = $User;
-
+            Refresh();
         }
 
         private function RenderControl() {
             $html = "";
 
-            $html .= "<DIV>";
+            $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
+            $html .= "";
 
             $html .= "</DIV>";
 
@@ -604,6 +814,35 @@
 
         public function Draw() {
             echo RenderControl();
+        }
+
+        public function Refresh() {
+
+        }
+
+        public function Update($HTMLName, $Value) {
+            if(!($HTMLName == $this->HTMLName)) {
+                return;
+            }
+        }
+
+
+        public function CSSClass($CSSClass = null) {
+            if($CSSClass == null) {
+                return $this->CSSClass;
+            }
+            else {
+                $this->CSSClass = $CSSClass;
+            }
+        }
+
+        public function HTMLName($HTMLName = null) {
+            if($HTMLName == null) {
+                return $this->HTMLName;
+            }
+            else {
+                $this->HTMLName = $HTMLName;
+            }
         }
 
     }
@@ -611,15 +850,18 @@
     // Going to encapsulate the various pages in the previous version into GUI controls. Going full .NET on this one. ;-)
     class EventEditor {
         private $Event;
+        private $HTMLName = "EventEditorControl";
+        private $CSSClass = "EventEditorControl";
 
         public function __construct($Event) {
             $this->Event = $Event;
+            Refresh();
         }
 
         private function RenderControl() {
             $html = "";
 
-            $html .= "<DIV>";
+            $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
 
             $html .= "</DIV>";
 
@@ -630,7 +872,45 @@
             echo RenderControl();
         }
 
+        public function Refresh() {
 
+        }
+
+        public function Update($HTMLName, $Value) {
+            if(!($HTMLName == $this->HTMLName)) {
+                return;
+            }
+
+
+
+        }
+
+        public function CSSClass($CSSClass = null) {
+            if($CSSClass == null) {
+                return $this->CSSClass;
+            }
+            else {
+                $this->CSSClass = $CSSClass;
+            }
+        }
+
+        public function HTMLName($HTMLName = null) {
+            if($HTMLName == null) {
+                return $this->HTMLName;
+            }
+            else {
+                $this->HTMLName = $HTMLName;
+            }
+        }
+
+
+    }
+
+    // Simple class to issue a HTTP redirect (to get around some problems). Should be the first thing on the page.
+    class HTTPRedirector {
+        public static function Redirect($URL) {
+            header("Location : " . $URL);
+        }
     }
 
     // SQL -> a basic data access layer for SQL servers. MySQL doesn't seem to differentiate between data and non-data queries, but other databases do.
