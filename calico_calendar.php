@@ -1,3 +1,18 @@
+<?php
+
+require_once("calico_classes_v2.php");
+
+$calendarmanager = new \GUI\CalendarManager();
+
+$calendarmanager->EventCallback();
+$calendarmanager->Refresh();
+
+
+
+$calendarmanager->Draw();
+
+/*
+
 <html>
 <HEAD>
 <link rel="stylesheet" type="text/css" href="calico.css">
@@ -12,6 +27,8 @@
 
 <input class="standardButton" type="submit" /><br/><br/>
 <?php
+
+
 
 // Check for new feed. Add it to the db if there is one.
 if(isset($_POST["name"])) {
@@ -71,6 +88,7 @@ mysql_close($con_out);
 </form>
 </body>
 </html> 
+*/
 
 
-
+?>

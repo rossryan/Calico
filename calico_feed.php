@@ -1,3 +1,16 @@
+<?php
+require_once("calico_classes_v2.php");
+
+$superfeedmanager = new \GUI\SuperFeedManager();
+
+$superfeedmanager->EventCallback();
+$superfeedmanager->Refresh();
+
+
+$superfeedmanager->Draw();
+
+
+/*
 <html>
 <HEAD>
 <link rel="stylesheet" type="text/css" href="calico.css">
@@ -97,6 +110,8 @@ mysql_close($con_out);
 </form>
 </body>
 </html> 
+*/
 
+?>
 
 

@@ -335,6 +335,9 @@ class tc_calendar{
 		}
 	}
 
+
+
+
 	function writeCalendarContainer(){
 		$params = array();
 		$params[] = "objname=".$this->objname;

@@ -1,15 +1,18 @@
 
 <?php
 
+require_once("calico_classes_v2.php");
 
-//echo $_SESSION["EVENT"];
+$eventeditor = new \GUI\EventEditor();
 
-require_once 'HTTP/Request2.php';
-require_once 'HTTP.php';
-require_once 'calico_classes.php';
-
+$eventeditor->EventCallback();
+$eventeditor->Refresh();
 
 
+$eventeditor->Draw();
+
+
+/*
 foreach(array_keys($_REQUEST) as $str) {
 	if($str == "Save" || $str == "Cancel" || $str == "Delete") {
 			if($str == "Save") {
@@ -78,7 +81,7 @@ if(isset($_SESSION["EVENT"]) && $_SESSION["EVENT"] != null && $_SESSION["EVENT"]
     $event = $feed->GetEventFromID($eventid);
 	
 	$_SESSION["ETAG"] = "";  
-    */
+
 }
 
 
@@ -207,6 +210,6 @@ echo "</TABLE>";
 echo "</form>";
 echo "</body>";
 echo "</html>"; 
-
+*/
 
 ?>
