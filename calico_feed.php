@@ -1,12 +1,14 @@
 <?php
+
 require_once("calico_classes_v2.php");
 
-$superfeedmanager = new \GUI\SuperFeedManager();
+if(!isset($_SESSION["USER"])) {
+    HTTP\HTTPRedirector("calico_login.php");
+}
 
-$superfeedmanager->EventCallback();
+$superfeedmanager = new \GUI\SuperFeedManager($_SESSION["USER"]);
+$superfeedmanager->Postback();
 $superfeedmanager->Refresh();
-
-
 $superfeedmanager->Draw();
 
 

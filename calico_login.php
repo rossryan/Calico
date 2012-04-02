@@ -9,36 +9,15 @@
 
 require_once("calico_classes_v2.php");
 
-$login = new \GUI\Login();
+// I'll explain this once.
+$login = new \GUI\Login(); // Declare object here.
+$login->Postback(); // Call object, and have it check if anything has changed (PostED Back from the page)
+$login->Refresh(); // The MS equivalent of DataBind(), also known as "I have set all the flags I want, we are good to go, get the data, and prepare to write the HTML"
 
-$login->EventCallback();
-$login->Refresh();
-$login->Draw();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+echo "<HTML>
+<HEAD></HEAD>
+<BODY>" . $login->Draw() . "</BODY>
+</HTML>";
 
 
 

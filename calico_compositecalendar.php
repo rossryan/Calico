@@ -1,5 +1,19 @@
 <?php
 
+require_once("calico_classes_v2.php");
+
+if(!isset($_SESSION["USER"])) {
+    HTTP\HTTPRedirector("calico_login.php");
+}
+
+$compositecalendar = new \GUI\CompositeCalendar($_SESSION["USER"]);
+$compositecalendar->Postback();
+$compositecalendar->Refresh();
+$compositecalendar->Draw();
+
+
+
+/*
 foreach(array_keys($_REQUEST) as $str) {
    if(strpos($str, "ENT:") > 0) {
         
@@ -98,5 +112,7 @@ $composite->GenerateView();
 </body>
 </html> 
 
+*/
 
+?>
 

@@ -2,13 +2,13 @@
 
 require_once("calico_classes_v2.php");
 
-$calendarmanager = new \GUI\CalendarManager();
+if(!isset($_SESSION["USER"])) {
+    HTTP\HTTPRedirector("calico_login.php");
+}
 
-$calendarmanager->EventCallback();
+$calendarmanager = new \GUI\CalendarManager($_SESSION["USER"]);
+$calendarmanager->Postback();
 $calendarmanager->Refresh();
-
-
-
 $calendarmanager->Draw();
 
 /*

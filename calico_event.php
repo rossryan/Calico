@@ -3,12 +3,13 @@
 
 require_once("calico_classes_v2.php");
 
-$eventeditor = new \GUI\EventEditor();
+if(!isset($_SESSION["USER"])) {
+    HTTP\HTTPRedirector("calico_login.php");
+}
 
-$eventeditor->EventCallback();
+$eventeditor = new \GUI\EventEditor($_SESSION["EVENT"]);
+$eventeditor->Postback();
 $eventeditor->Refresh();
-
-
 $eventeditor->Draw();
 
 
