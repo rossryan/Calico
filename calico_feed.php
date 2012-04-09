@@ -1,16 +1,22 @@
 <?php
 
-require_once("calico_classes_v2.php");
+include_once("calico_classes_v2.php");
 
 if(!isset($_SESSION["USER"])) {
-    HTTP\HTTPRedirector("calico_login.php");
+    \HTTP\HTTPRedirector::Redirect("calico_login.php");
 }
 
-$superfeedmanager = new \GUI\SuperFeedManager($_SESSION["USER"]);
+$superfeedmanager = new \GUI\SuperFeedManager(unserialize($_SESSION["USER"]));
 $superfeedmanager->Postback();
 $superfeedmanager->Refresh();
-$superfeedmanager->Draw();
+//$superfeedmanager->Draw();
 
+echo "<HTML>
+<HEAD>
+<TITLE>Calico: Feed Manager</TITLE>
+</HEAD>
+<BODY>" . $superfeedmanager->Draw() . "</BODY>
+</HTML>";
 
 /*
 <html>

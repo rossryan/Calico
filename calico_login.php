@@ -7,7 +7,7 @@
  * To change this template use File | Settings | File Templates.
  */
 
-require_once("calico_classes_v2.php");
+include_once("calico_classes_v2.php");
 
 // I'll explain this once.
 $login = new \GUI\Login(); // Declare object here.
@@ -16,7 +16,7 @@ $login->Refresh(); // The MS equivalent of DataBind(), also known as "I have set
 
 echo "<HTML>
 <HEAD>
-<TITLE>Calico:Login</TITLE>
+<TITLE>Calico: Login</TITLE>
 </HEAD>
 <BODY>" . $login->Draw() . "</BODY>
 </HTML>";

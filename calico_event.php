@@ -1,25 +1,30 @@
 
 <?php
 
-require_once("calico_classes_v2.php");
+include_once("calico_classes_v2.php");
 
 if(!isset($_SESSION["USER"])) {
-    HTTP\HTTPRedirector("calico_login.php");
+    \HTTP\HTTPRedirector::Redirect("calico_login.php");
 }
 
 $eventeditor = null;
 if(isset($_SESSION["EVENT"])) {
-    $eventeditor = new \GUI\EventEditor($_SESSION["USER"], $_SESSION["EVENT"]);
+    $eventeditor = new \GUI\EventEditor(unserialize($_SESSION["USER"]), unserialize($_SESSION["EVENT"]));
 }
 else {
-    $eventeditor = new \GUI\EventEditor($_SESSION["USER"]);
+    $eventeditor = new \GUI\EventEditor(unserialize($_SESSION["USER"]));
 }
 
 $eventeditor->Postback();
 $eventeditor->Refresh();
-$eventeditor->Draw();
+//$eventeditor->Draw();
 
-
+echo "<HTML>
+<HEAD>
+<TITLE>Calico: Event Editor</TITLE>
+</HEAD>
+<BODY>" . $eventeditor->Draw() . "</BODY>
+</HTML>";
 /*
 foreach(array_keys($_REQUEST) as $str) {
 	if($str == "Save" || $str == "Cancel" || $str == "Delete") {

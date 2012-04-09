@@ -27,17 +27,10 @@
 
     //@todo: Figure out how to get comments to show up in PhpStorm's Intellisense.
     //TSBuilder -> class for building a Timestamp. Debating whether I need this one.
+/*
 namespace Time {
+
     class Time {
-        /*
-        const Year = "Year";
-        const Month = "Month";
-        const Week = "Week";
-        const Day = "Day";
-        const Hour = "Hour";
-        const Minute = "Minute";
-        const Second = "Second";
-        */
 
         private $timestamp = 0;
 
@@ -273,6 +266,7 @@ namespace Time {
 
     }
 }
+*/
 
 namespace Extract {
     class Extract {
@@ -778,6 +772,709 @@ namespace Extract {
     }
 }
 
+namespace HTTP {
+
+    // Simple class to issue a HTTP redirect (to get around some problems). Should be the first thing on the page.
+    class HTTPRedirector {
+        public static function Redirect($URL) {
+            header("Location : " . $URL);
+        }
+    }
+
+    // HTTPRequests -> PHP seems to be lacking a lot of the WebDav / CalDav extensions. I'm abstracting these from the V1 versions, so future edits (ostensibly by other programmers) will be easier.
+    class HTTPRequests {
+        const ProxyEnabled = true;
+        const ProxyServer = "127.0.0.1";
+        const ProxyPort = 8888;
+
+        const UserAgent = "Calico (v.02)";
+
+        private static $StandardHeaders = Array("User-Agent" => "Calico v.02", "Accept" => "text/xml", "Accept-Language" => "en-us,en;q=0.5", "Accept-Encoding" => "gzip,deflate", "Accept-Charset" => "utf-8,*;q=0.1",
+            "Keep-Alive" => "300", "Connection" => "keep-alive", "Pragma" => "no-cache", "Cache-Control" => "no-cache");
+
+        public static function StandardHeaders() {
+            return clone $this->StandardHeaders;
+        }
+
+
+        private static function ContentLength($Content) {
+            return strlen(strstr($Content, "\r\n\r\n")) - 4;
+        }
+
+        private static function Base64UsernamePassword($Username, $Password) {
+            return base64_encode($Username . ":" . $Password);
+
+        }
+
+        private static function Send($URL, $Data) {
+            $server = parse_url($URL, PHP_URL_HOST);
+            $port = parse_url($URL, PHP_URL_PORT);
+
+            // If the parsing the port information fails, we will assume it's on a default port.
+            // As such, we'll set the port in the switch below.
+            if($port == null) {
+                switch(parse_url($URL, PHP_URL_SCHEME)) {
+                    case "HTTP":
+                        $port = 80;
+                        break;
+                    case "HTTPS":
+                        $port = 443;
+                        break;
+
+                }
+            }
+
+            // Check if we are using a proxy (debug configuration typically).
+            if(ProxyEnabled) {
+                $server = ProxyServer;
+                $port = ProxyPort;
+            }
+
+            // Open a connection to the server.
+            $connection = fsockopen($server, $port, $errno, $errstr);
+            if (!$connection) {
+                die($errstr($errno));
+            }
+
+            fwrite($connection, $Data);
+
+            $response = "";
+            while (!feof($connection)) {
+                $response .= fgets($connection);
+            }
+            fclose($connection);
+
+            return $response;
+        }
+
+        // parse_url for here.
+        // rawurlencode / rawlurldecode for later.
+        public static function Put($URL, $Headers, $Content) {
+            //@todo: Finish deciding what will go in a general Put Request, and what will need to go in a Header Array.
+            $request = "";
+            $request .= "PUT " . $URL . " HTTP/1.1" . "\r\n";
+            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
+
+            $content = "\r\n";
+            foreach($Content as $data) {
+                $content .= $data . "\r\n";
+            }
+
+            $contentlength = $this->ContentLength($content);
+            if($contentlength > 0) {
+                $Headers["Content-Length"] = $contentlength;
+            }
+
+            foreach($Headers as $key => $value) {
+                $request .= $key . ": " . $value . "\r\n";
+            }
+
+            $request .= $content; //May need a double /r/n here.
+
+            return $this->Send($request);
+
+        }
+
+        public static function Report($URL, $Headers, $Content) {
+            $request = "";
+            $request .= "REPORT " . $URL . " HTTP/1.1" . "\r\n";
+            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
+
+            $content = "\r\n";
+            foreach($Content as $data) {
+                $content .= $data . "\r\n";
+            }
+
+
+            $contentlength = $this->ContentLength($content);
+            if($contentlength > 0) {
+                $Headers["Content-Length"] = $contentlength;
+            }
+
+            foreach($Headers as $key => $value) {
+                $request .= $key . ": " . $value . "\r\n";
+            }
+
+            $request .= $content; //May need a double /r/n here.
+
+            return $this->Send($request);
+        }
+
+        //@todo: Fully compartmentalize these functions.
+        public static function Propfind($URL, $Headers, $Content) {
+            $request = "";
+            $request .= "PROPFIND " . $URL . " HTTP/1.1" . "\r\n";
+            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
+
+            $content = "\r\n";
+            foreach($Content as $data) {
+                $content .= $data . "\r\n";
+            }
+
+
+            $contentlength = $this->ContentLength($content);
+            if($contentlength > 0) {
+                $Headers["Content-Length"] = $contentlength;
+            }
+
+            foreach($Headers as $key => $value) {
+                $request .= $key . ": " . $value . "\r\n";
+            }
+
+            $request .= $content; //May need a double /r/n here.
+
+            return $this->Send($request);
+        }
+
+
+        public static function Delete($URL, $Headers) {
+
+            $request = "";
+            $request .= "DELETE " . $URL . " HTTP/1.1" . "\r\n";
+            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
+
+            foreach($Headers as $key => $value) {
+                $request .= $key . ": " . $value . "\r\n";
+            }
+
+            return $this->Send($request);
+        }
+
+        public static function Options($URL, $Headers, $Content) {
+            $request = "";
+            $request .= "OPTIONS " . $URL . " HTTP/1.1" . "\r\n";
+            $request .= "Host: " . parse_url($URL, PHP_URL_HOST)  . "\r\n";
+
+            $content = "\r\n";
+            foreach($Content as $data) {
+                $content .= $data . "\r\n";
+            }
+
+
+            $contentlength = $this->ContentLength($content);
+            if($contentlength > 0) {
+                $Headers["Content-Length"] = $contentlength;
+            }
+
+            foreach($Headers as $key => $value) {
+                $request .= $key . ": " . $value . "\r\n";
+            }
+
+            $request .= $content; //May need a double /r/n here.
+
+            return Send($request);
+        }
+    }
+}
+
+
+namespace SQL {
+
+
+    // SQL -> a basic data access layer for SQL servers. MySQL doesn't seem to differentiate between data and non-data queries, but other databases do.
+    class SQL {
+
+        // Keeping these as constants for now. Might be a good idea to pull them out into an XML file at some point.
+        const Server = "127.0.0.1";
+        const Username = "root";
+        const Password = "mysql";
+        const Database = "calico";
+
+        // @todo: Perhaps better error handling here?
+        public static function DataQuery($Query) {
+            $connection = mysql_connect(SQL::Server, SQL::Username, SQL::Password);
+
+            if (!$connection)
+            {
+                // error_log() here. Quiet logging of errors.
+                die('Could not connect: ' . mysql_error());
+            }
+
+            mysql_select_db(SQL::Database, $connection);
+            $data = mysql_query($Query);
+
+            return $data;
+        }
+
+
+        public static function NonDataQuery($Query) {
+            $connection = mysql_connect(SQL::Server, SQL::Username, SQL::Password);
+
+            if (!$connection)
+            {
+                die("Could not connect: " . mysql_error());
+            }
+
+            mysql_select_db(SQL::Database, $connection);
+            mysql_query($Query);
+
+        }
+
+    }
+
+
+}
+
+
+namespace Data {
+
+    // User -> class for passing around user information. Should only pass around the UserID (a unqiue SQL ID), for security reasons, in a Session object.
+    class User {
+        private $SQL_ID = "";
+
+        public function __construct($Username = null, $Password = null) {
+            if($Username == null && $Password == null) {
+                return;
+            }
+            // Probably want to Base64 encode the values going into and out of the MySQL database, to prevent a SQL Injection attack.
+            $query = "SELECT `UserID` FROM `calico`.`users` WHERE `Username` = '" . base64_encode($Username) . "' AND `Password` = '" . base64_encode($Password) . "';";
+            $data = \SQL\SQL::DataQuery($query);
+            $row = mysql_fetch_array($data);
+            $this->SQL_ID = $row["UserID"];
+        }
+
+        public function GetUserID() {
+            return $this->SQL_ID;
+        }
+    }
+    // Calendar -> class for containg user-defined calendars.
+    class Calendar {
+        private $SQL_ID = "";
+        //private $CalendarName = "";
+        private $SuperFeedList = Array();
+
+        public function __construct($CalendarID) {
+            $this->SQL_ID = $CalendarID;
+            $this->Refresh();
+        }
+
+        public function GetSuperFeedList() {
+            return $this->SuperFeedList;
+        }
+
+        public function Refresh() {
+            $query = "SELECT `SuperFeedID` FROM `calico`.`superfeeds` WHERE `CalendarID` = '" . $this->SQL_ID . "';";
+            $data = \SQL\SQL::DataQuery($query);
+
+            while($row = mysql_fetch_array($data))
+            {
+                $this->SuperFeedList[] = new SuperFeed($row['SuperFeedID']);
+            }
+
+        }
+
+    }
+
+    //@todo: Check Fiddler for variant HTTP requests, and confirm the new object model based off of these observations.
+    //@todo: Following that, use the new MySQL Query / Table Analyzer to rebuild the sql table model to better specifications.
+
+    // SuperFeed -> class for storing the primary link for the collection of CalDav resources.
+    class SuperFeed {
+        private $SQL_ID = "";
+        private $FeedURL = "";
+        private $ETAG = ""; // I may have some use for this.
+        private $FeedUsername = "";
+        private $FeedPassword = "";
+        private $EventList = Array();
+
+
+
+        // @todo: Rewrite this more intelligently.
+        public function __construct($SuperFeedID) {
+            $this->SQL_ID = $SuperFeedID;
+            $this->Refresh();
+        }
+
+        public function GetEventList() {
+            return $this->EventList;
+        }
+
+        public function Refresh() {
+            $query = "SELECT `FeedURL`, `FeedUsername`, `FeedPassword` FROM `calico`.`superfeeds` WHERE `SuperFeedID` = '" . $this->SuperFeedID . "';";
+            $data = \SQL\SQL::DataQuery($query);
+
+            $row = mysql_fetch_array($data);
+            $this->FeedURL = base64_decode($row['FeedURL']);
+            $this->FeedUsername = base64_decode($row['FeedUsername']);
+            $this->FeedPassword = base64_decode($row['FeedPassword']);
+        }
+
+        private function Propfind() {
+            $headers = Array();
+            $headers = $this->StandardHeaders();
+            $headers["Content-Type"] = "text/calendar; charset=utf-8";
+            $headers["Depth"] = "0";
+            $headers["Authorization"] = base64_encode($this->FeedUsername) . ":" . base64_encode($this->FeedPassword);
+
+            $content = Array();
+            $content[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+            $content[] = "<D:propfind xmlns:D=\"DAV:\">";
+            $content[] = "<D:prop>";
+            $content[] = "<D:getcontenttype/>";
+            $content[] = "<D:resourcetype/>";
+            $content[] = "<D:getetag/>";
+            $content[] = "</D:prop>";
+            $content[] = "</D:propfind>";
+
+            $this->ParsePropfind(\HTTP\HTTPRequests::Propfind($this->URL, $headers, $content));
+
+        }
+
+        private function ParsePropfind($String) {
+
+            $Xml = new SimpleXMLElement($String);
+            $ResponseList = $Xml->multistatus->response->children();
+            // Don't need the first one.
+            for($i = 1; $i < count($ResponseList); $i++) {
+                $feedurl = parse_url($this->FeedURL, PHP_URL_SCHEME) . "://" . parse_url($this->FeedURL, PHP_URL_HOST) . $ResponseList[$i]->href; //$Xml->xpath("/multistatus/response/href"); // Modify these for iteration.
+                $etag = $ResponseList[$i]->propstat->prop->getetag;//$Xml->xpath("/multistatus/response/propstat/prop/getetag");
+                $this->EventList[] = new Event($feedurl, $this->FeedUsername, $this->FeedPassword, $etag);
+            }
+        }
+
+    }
+
+    // Event -> class for storing event information. Due to this redesign, Event will now be handling some of the functions previously found in the Feed class.
+    class Event {
+        private $FeedURL = "";
+        private $FeedUsername = "";
+        private $FeedPassword = "";
+        private $ETAG = "";
+        private $Summary = "";
+        private $Location = "";
+        private $Description = "";
+        private $UID = "";
+        private $StartDate = null;
+        private $EndDate = null;
+        private $XMozGeneration = 0;
+        private $DateStamp = null;
+        private $Created = null;
+        private $LastModified = null;
+        private static $BannedUIDs = Array(); // Sanity check, to ensure that we aren't going to use an existing UID.
+
+        public static function GetBannedUIDs() {
+            return $this->BannedUIDs;
+        }
+
+        public function GetSummary() {
+            return $this->Summary;
+        }
+
+        public function GetLocation() {
+            return $this->Location;
+        }
+
+        public function GetDescription() {
+            return $this->Description;
+        }
+
+        public function GetStartDate() {
+            return $this->StartDate;
+        }
+
+        public function GetEndDate() {
+            return $this->EndDate;
+        }
+
+        //@todo: Verify that this is the correct, or at least, a very good idea. A default constructor that just takes in the string containing VEVENT information (raw).
+        public function __construct($FeedURL, $FeedUsername, $FeedPassword, $ETAG) {
+            //ParseVEvent($String);
+            $this->FeedUsername = $FeedUsername;
+            $this->FeedPassword = $FeedPassword;
+            $this->FeedURL = $FeedURL;
+            $this->ETAG = $ETAG;
+            $this->Refresh();
+
+        }
+
+        // @todo: Store this here until I know what to do with it.
+        public function GetNewUniqueID() {
+            $isnew = true;
+            $newUID = "";
+            do {
+                $newUID = str_replace(".", "", uniqid("", true));
+                if(in_array($newUID, $this->GetBannedUIDs())) {
+                    $isnew = false;
+                }
+            } while($isnew == false);
+
+            return $newUID;
+        }
+
+        public function Refresh() {
+            $this->Report();
+        }
+
+        public function Report() {
+            $headers = Array();
+            $headers = $this->StandardHeaders();
+            $headers["Content-Type"] = "text/calendar; charset=utf-8";
+            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
+            $headers["Depth"] = "1";
+
+            $content = "";
+            $content .= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+            $content .= "<calendar-multiget xmlns:D=\"DAV:\" xmlns=\"urn:ietf:params:xml:ns:caldav\">";
+            $content .= "<D:prop>";
+            $content .= "<D:getetag/>";
+            $content .= "<calendar-data/>";
+            $content .= "</D:prop>";
+            $content .= "<D:href>" . parse_url($this->URL, PHP_URL_PATH) . "</D:href>";
+            $content .= "</calendar-multiget>";
+
+            $this->ParseReport(\HTTP\HTTPRequests::Report($this->URL, $headers, $content));
+
+        }
+
+
+        public function Update($Summary, $Location, $Description, $StartDate, $EndDate, $RRule = null) {
+            $this->Summary = $Summary;
+            $this->Location = $Location;
+            $this->Description = $Description;
+            $this->StartDate = $StartDate;
+            $this->EndDate = $EndDate;
+
+            $this->Put();
+
+        }
+
+        private function Put() {
+            // @todo: Rewrite the HTTP requests in this object to flow more.
+            $headers = Array();
+            $headers = $this->StandardHeaders();
+            $headers["Content-Type"] = "text/calendar; charset=utf-8";
+            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
+            $headers["If-Match"] = $this->ETAG;
+
+            $content = Array();
+            $content[] = "BEGIN:VCALENDAR";
+            $content[] = "PRODID:Calico";
+            $content[] = "VERSION:2.0";
+
+            $content[] = "BEGIN:VTIMEZONE";
+            $content[] = "TZID:America/New_York"; // date_default_timezone_get()
+            $content[] = "X-LIC-LOCATION:America/New_York";
+
+            //@todo: Implement Daylight-Savings / Other Timezones, instead of hard coding them.
+
+            //Verify which one is Daylight, if it has Daylight.
+
+            //Algorithm -> create a date on June 1st, then set it to December 1st. Check timezones on both.
+            // If they match, there is no DayLight savings.
+
+            //New idea: nevermind this nonsense, for now. Apparently, not only are date / times a level of insanity (as I already knew),
+            //but timezones + daylight savings times are moving targets. It appears that some countries are randomly trying out Daylight-Savings times.
+
+            $content[] = "BEGIN:DAYLIGHT";
+            $content[] = "TZOFFSETFROM:-0500";
+            $content[] = "TZOFFSETTO:-0400";
+            $content[] = "TZNAME:EDT";
+            $content[] = "DTSTART:19700308T020000";
+            $content[] = "RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3";
+            $content[] = "END:DAYLIGHT";
+
+            $content[] = "BEGIN:STANDARD";
+            $content[] = "TZOFFSETFROM:-0400";
+            $content[] = "TZOFFSETTO:-0500";
+            $content[] = "TZNAME:EST";
+            $content[] = "DTSTART:19701101T020000";
+            $content[] = "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11";
+            $content[] = "END:STANDARD";
+            $content[] = "END:VTIMEZONE";
+            array_merge($content, $this->BuildVEvent($this->UID, $this->Summary, $this->StartDate, $this->EndDate, $this->Location, $this->Description, time(), $this->Created, time())); //GenerateUID goes in here.
+            $content[] = "END:VCALENDAR";
+
+            //array_merge($content, $this->BuildVEvent($uid, $Summary, $StartDate, $EndDate, $Location, $Description, $LastModified, $Created, $DateStamp));
+
+
+            //$headers["Content-Length"] = $this->ContentLength($content);
+
+            $this->ParsePut(\HTTP\HTTPRequests::Put($this->URL, $headers, $content));
+
+        }
+
+        public function Delete() {
+            $headers = Array();
+            $headers = $this->StandardHeaders();
+            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
+            $headers["If-Match"] = $this->ETAG;
+
+            $this->ParseDelete(\HTTP\HTTPRequests::Delete($this->URL, $headers));
+        }
+
+
+        private function ParseDelete($String) {
+            // HTTP/1.1 204 No Content
+            if (strlen(strstr($String,"HTTP/1.1 204 No Content"))>0) {
+                return true;
+            }
+
+            return false;
+        }
+
+        private function ParseReport($String) {
+            // HTTP/1.1 207 Multi-Status
+            if (!(strlen(strstr($String,"HTTP/1.1 207 Multi-Status"))>0)) {
+                return false;
+            }
+
+            $Xml = SimpleXMLElement(strstr($String, "\r\n\r\n"));
+            $this->ETAG = $Xml->multistatus->response[0]->propstat->prop->getetag;
+            $vevent = $Xml->multistatus->response[0]->propstat->prop->children("urn:ietf:params:xml:ns:caldav");
+            ParseVEvent($vevent[0]);
+
+            return true;
+
+        }
+
+        //@todo: Move creation functions to Event.
+        public static function Create($FeedURL, $FeedUsername, $FeedPassword, $Summary, $StartDate, $EndDate, $Location, $Description, $RRule = null) {
+
+            $headers = Array();
+            $headers = $this->StandardHeaders();
+            $headers["Content-Type"] = "text/calendar; charset=utf-8";
+            $headers["Authorization"] = base64_encode($FeedUsername . ":" . $FeedPassword);
+            $headers["If-None-Match"] = "*";
+
+            $uid = GetNewUniqueID();
+            $content = Array();
+            $content[] = "BEGIN:VCALENDAR";
+            $content[] = "PRODID:Calico";
+            $content[] = "VERSION:2.0";
+
+            $content[] = "BEGIN:VTIMEZONE";
+            $content[] = "TZID:America/New_York"; // date_default_timezone_get()
+            $content[] = "X-LIC-LOCATION:America/New_York";
+
+            //@todo: Implement Daylight-Savings / Other Timezones, instead of hard coding them.
+
+            //Verify which one is Daylight, if it has Daylight.
+
+            //Algorithm -> create a date on June 1st, then set it to December 1st. Check timezones on both.
+            // If they match, there is no DayLight savings.
+
+            //New idea: nevermind this nonsense, for now. Apparently, not only are date / times a level of insanity (as I already knew),
+            //but timezones + daylight savings times are moving targets. It appears that some countries are randomly trying out Daylight-Savings times.
+
+            $content[] = "BEGIN:DAYLIGHT";
+            $content[] = "TZOFFSETFROM:-0500";
+            $content[] = "TZOFFSETTO:-0400";
+            $content[] = "TZNAME:EDT";
+            $content[] = "DTSTART:19700308T020000";
+            $content[] = "RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3";
+            $content[] = "END:DAYLIGHT";
+
+            $content[] = "BEGIN:STANDARD";
+            $content[] = "TZOFFSETFROM:-0400";
+            $content[] = "TZOFFSETTO:-0500";
+            $content[] = "TZNAME:EST";
+            $content[] = "DTSTART:19701101T020000";
+            $content[] = "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11";
+            $content[] = "END:STANDARD";
+            $content[] = "END:VTIMEZONE";
+            array_merge($content, $this->BuildVEvent($uid, $Summary, $StartDate, $EndDate, $Location, $Description, time(), time(), time())); //GenerateUID goes in here.
+            $content[] = "END:VCALENDAR";
+
+            $url = $FeedURL . $uid . ".ics"; //@todo: Construct URL (UID) to post to here.
+            $response = \HTTP\HTTPRequests::Put($url, $headers, $content);
+
+            if (strlen(strstr($response,"HTTP/1.1 201 Created"))>0) {
+                $Event = new Event($url);
+                return $Event;
+            }
+
+            return null;
+        }
+
+        private function ParsePut($String) {
+            if (strlen(strstr($String,"HTTP/1.1 204 No Content"))>0) {
+                $this->ETAG = \Extract\Extract::GetETag($String);
+                return true;
+            }
+            return false;
+        }
+
+        private function ParseVEvent($String) {
+
+            $daylight = \Extract\Extract::GetDaylight($String);
+            $vevent = \Extract\Extract::GetVEvent($String);
+
+            $this->Summary = \Extract\Extract::GetSummary($vevent);
+
+
+            $start = explode(":", \Extract\Extract::GetStartDate($vevent));
+            $startdatetime = new DateTime($start[1]);
+            $startdatetimezone = timezone_open($start[0]);
+            $startdatetime->setTimezone($startdatetimezone);
+            $this->StartDate =  $startdatetime->getTimestamp();
+
+            $end = explode(":", \Extract\Extract::GetEndDate($vevent));
+            $enddatetime = new DateTime($end[1]);
+            $enddatetimezone = timezone_open($end[0]);
+            $enddatetime->setTimezone($enddatetimezone);
+            $this->EndDate = $enddatetime->getTimestamp();
+
+            $this->Location = \Extract\Extract::GetLocation($vevent);
+            $this->Description = \Extract\Extract::GetDescription($vevent);
+            $this->Created = \Extract\Extract::GetCreated($vevent);
+            $this->LastModified = \Extract\Extract::GetLastModified($vevent);
+            $this->DateStamp =  \Extract\Extract::GetDateStamp($vevent);
+            $this->UID = \Extract\Extract::GetUID($vevent);
+            //$this->XMozGeneration = \Extract\Extract::GetXMozGeneration($vevent);
+            //$this->rrule = \Extract\Extract::GetRRule($vevent);
+
+            if(!in_array($this->UID, $this->BannedUIDs)) {
+                $this->BannedUIDs[] = $this->UID;
+            }
+
+
+
+        }
+
+        public static function BuildVEvent($UID, $Summary, $StartDate, $EndDate, $Location, $Description, $LastModified, $Created, $DateStamp, $RRule = null) {
+            $content = Array();
+            $content[] = "BEGIN:VEVENT";
+            $content[] = "CREATED:" . gmdate("Ymd\THi00\Z",$Created); //gmdate()
+            $content[] = "LAST-MODIFIED:" . gmdate("Ymd\THi00\Z",$LastModified);
+            $content[] = "DTSTAMP:" . gmdate("Ymd\THi00\Z", $DateStamp);
+            $content[] = "UID:" . $UID;
+            $content[] = "SUMMARY:" . $Summary;
+            //@todo: Overhaul RRule.
+            /*
+            if($RRule != null && $RRule != "") {
+                $content[] = "RRULE:" . $RRule;
+            }
+            */
+            $content[] = "DTSTART;TZID=" . date("e", time()) . ":" . date("Ymd\THi00", $StartDate);  //date_default_timezone_get()
+            $content[] = "DTEND;TZID=" . date("e", time()) . ":" . date("Ymd\THi00", $EndDate); //date()
+
+            if($Location != null && $Location != "") {
+                $content[] = "LOCATION:" . $Location;
+            }
+            if($this->Description != null && $Description != "") {
+                $content[] = "DESCRIPTION:" . $Description;
+            }
+            //Mozilla extension.
+            /*
+            if($this->XMozGeneration == 0) {
+
+            }
+            else {
+                 $this->XMozGeneration += 1;
+                $content[] = "X-MOZ-GENERATION:" . $this->XMozGeneration;
+            }
+            */
+            //X-MOZ-GENERATION:1 // Probably want to work this in here.
+            $content[] = "END:VEVENT";
+            return $content;
+        }
+
+
+    }
+}
+
+
+
 namespace GUI {
     class Event {
         // @todo: Event may be unnecessary, if I use POST. Possibly.
@@ -843,8 +1540,8 @@ namespace GUI {
         }
 
         private function GetDefaultViews() {
-            $query = "SELECT `DefaultView` FROM `calico.settings` WHERE `UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL::DataQuery($query);
+            $query = "SELECT `DefaultView` FROM `calico`.`settings` WHERE `UserID` = " . $this->User->GetUserID() . ";";
+            $data = \SQL\SQL::DataQuery($query);
             $row = mysql_fetch_array($data);
             $this->DefaultView = $row['DefaultView'];
         }
@@ -865,8 +1562,8 @@ namespace GUI {
         public function Postback() {
 
                 $this->DefaultView = $_POST["DefaultView"];
-                $query = "UPDATE `calico`.`settings` SET `DefaultView` = '" . $this->DefaultView . "' WHERE `UserID` = '" . $this->User->GetUserID() . "' ;";
-                $data = SQL\SQL::NonDataQuery($query);
+                $query = "UPDATE `calico`.`settings` SET `DefaultView` = '" . $this->DefaultView . "' WHERE `UserID` = " . $this->User->GetUserID() . " ;";
+                $data = \SQL\SQL::NonDataQuery($query);
 
         }
 
@@ -907,10 +1604,10 @@ namespace GUI {
         private function RenderControl() {
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            for($i = 0; $i < count($this->CalendarData); $i++) {
+            for($i = 0; $i < count($this->CalendarData["CalendarName"]); $i++) {
                 $html .= $this->CalendarData["CalendarName"][$i]; //@todo: Put name in here.
                 $checked = "";
-                if($this->CalendarData["CalendarName"][$i] == 1){
+                if($this->CalendarData["IsDisplayed"][$i] == 1){
                     $checked = "CHECKED";
                 }
                 $html .= "<INPUT TYPE=\"checkbox\" NAME=\"DisplayedCalendars[]\" VALUE=\"" . $i . "\" " . $checked . " >";
@@ -928,8 +1625,8 @@ namespace GUI {
 
         public function Refresh() {
 
-            $query = "SELECT `CalendarName`, `IsDisplayed` FROM `calico.calendars` WHERE `UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL\SQL::DataQuery($query);
+            $query = "SELECT `CalendarName`, `IsDisplayed` FROM `calico`.`calendars` WHERE `UserID` = " . $this->User->GetUserID() . ";";
+            $data = \SQL\SQL::DataQuery($query);
             //$this->CalendarData = Array();
             $this->CalendarData["CalendarName"] = Array();
             $this->CalendarData["IsDisplayed"] = Array();
@@ -959,8 +1656,8 @@ namespace GUI {
             }
 
             for($i = 0; $i < count($this->CalendarData["IsDisplayed"]); $i++) {
-                $query = "UPDATE `calico`.`calendars` SET `IsDisplayed` = " . $this->CalendarData["IsDisplayed"][$i] . " WHERE `UserID` = '" . $this->User->GetUserID() . "' AND `CalendarName` = '" . base64_encode($this->CalendarData["CalendarName"][$i]) . "';";
-                $data = SQL\SQL::NonDataQuery($query);
+                $query = "UPDATE `calico`.`calendars` SET `IsDisplayed` = " . $this->CalendarData["IsDisplayed"][$i] . " WHERE `UserID` = " . $this->User->GetUserID() . " AND `CalendarName` = '" . base64_encode($this->CalendarData["CalendarName"][$i]) . "';";
+                $data = \SQL\SQL::NonDataQuery($query);
             }
 
         }
@@ -1089,8 +1786,10 @@ class Bitmap {
         //@todo: Relax. Your anxiety is too high, so you can't think. You have plenty of time. You will finish on time. Relax.
         private $CalendarList = Array();
         private $User = null;
-        private $View = 0;
+        private $View = 1;
         private $SelectedTime;
+        private $CompositeDropDown;
+        private $CompositeCheckBox;
         const Monthly = 0;
         const Weekly = 1;
         const Daily = 2;
@@ -1109,8 +1808,12 @@ class Bitmap {
 
         public function __construct($User) {
             $this->User = $User;
-            $this->Refresh();
+            //$this->Refresh();
             $this->SelectedTime = time();
+            $this->CompositeDropDown = new \GUI\CompositeDropDown($this->User);
+            $this->CompositeCheckBox = new \GUI\CompositeCheckBox($this->User);
+
+            //@todo: Add in composite dropdown and composite check box here.
 
         }
 
@@ -1127,19 +1830,32 @@ class Bitmap {
         // @todo: Create an AJAX-enabled Viewing Pane for selected events on the composite calendar.
         // Make it read only, and have an Edit button that when clicked directs the user to the Edit Event control.
         public function RenderControl() {
+            require_once('/calendar/calendar/classes/tc_calendar.php');
             $html = "";
 
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            $html .= "<SCRIPT LANGUAGE=\"javascript\" SRC=\"calendar\calendar.js\"></SCRIPT>";
+            $html .= "<FORM METHOD=\"Post\" ACTION=\"calico_calendar.php\">";
+            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Calendar Manager\">";
+            $html .= "</FORM>";
+            $html .= "<FORM METHOD=\"Post\" ACTION=\"calico_feed.php\">";
+            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Feed Manager\">";
+            $html .= "</FORM>";
+            $html .= "<FORM METHOD=\"Post\" ACTION=\"calico_event.php\">";
+            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"New Event\">";
+            $html .= "</FORM>";
+            $html .= $this->CompositeDropDown->Draw();
+            $html .= $this->CompositeCheckBox->Draw();
+
+            $html .= "<SCRIPT LANGUAGE=\"javascript\" src=\"/calendar/calendar/calendar.js\"></SCRIPT>";
             $html .= "Selected Date:";
             //@todo: give an appropriate html name to this.
             $myCalendar = new tc_calendar("compositecalendardatepicker", true, false);
-            $myCalendar->setIcon("calendar/images/iconCalendar.gif");
+            $myCalendar->setIcon("calendar/calendar/images/iconCalendar.gif");
             $myCalendar->setDate(date('d', strtotime($this->SelectedTime))
                 , date('m', strtotime($this->SelectedTime))
                 , date('Y', strtotime($this->SelectedTime)));
             $myCalendar->setDate(date('d'), date('m'), date('Y'));
-            $myCalendar->setPath("calendar/");
+            $myCalendar->setPath("calendar/calendar/");
             $myCalendar->setYearInterval(2000, 2050);
             $myCalendar->dateAllow('2008-05-13', '2015-03-01');
             $myCalendar->setDateFormat('j F Y');
@@ -1147,6 +1863,7 @@ class Bitmap {
 
             // This should, hypothetically, redirect the output from echo to a string.
             // It's either this, or rewrite the control.
+
             ob_start();
             $myCalendar->writeScript();
             $html .= ob_get_contents();
@@ -1162,14 +1879,14 @@ class Bitmap {
 
         private function RenderView() {
             switch($this->View) {
-                case Monthly:
-                    return RenderMonthly();
+                case CompositeCalendar::Monthly:
+                    return $this->RenderMonthly();
                     break;
-                case Weekly:
-                    return RenderWeekly();
+                case CompositeCalendar::Weekly:
+                    return $this->RenderWeekly();
                     break;
-                case Daily:
-                    return RenderDaily();
+                case CompositeCalendar::Daily:
+                    return $this->RenderDaily();
                     break;
                 default:
                     break;
@@ -1409,18 +2126,18 @@ class Bitmap {
             // StartDate = Time(Y-m-d) - Time(w) DayofWeek (Sunday, 12:00 AM)
             // EndDate = (Time(Y-M-D) - Time(w) DayofWeek) + 1 week) (Sunday 12:00 AM)
             $weekstart = strtotime("-" . date("w", $this->SelectedTime) . " day", strtotime(date("Y-m-d", $this->SelectedTime)));
-            $weekend = strtotime("+1 week", strtotime(date("Y-m-d", $this->SelectedTime)));
+            $weekend = strtotime("+6 days", strtotime(date("Y-m-d", $this->SelectedTime)));
 
-            $events = GetRelevantEvents($weekstart, $weekend);
+            $events = $this->GetRelevantEvents($weekstart, $weekend);
             $increment = 30 * 60; // 30 minutes
             $segments = Array();
             $segments["Start"] = Array();
             $segments["End"] = Array();
-            $segments["Width"] = Array(); // The width of each event per day.
+            //$segments["Width"] = Array(); // The width of each event per day.
 
-            for($t = $weekstart; $t < $weekend; strtotime("+1 day", $t)) {
-                $segments["Start"] = $t;
-                $segments["End"] = strtotime("+1 day", $t);
+            for($t = $weekstart; $t < $weekend; $t = strtotime("+1 day", $t)) {
+                $segments["Start"][] = $t;
+                $segments["End"][] = strtotime("+1 day", $t);
 
             }
 
@@ -1430,10 +2147,13 @@ class Bitmap {
             //4% for each div, 8% for the column headers.
             //7 days, with row headers -> 100/8 -> 12.5, 7 * 12.5 = 87.5, 13% for, 91%, 9%
 
-
+            $html .= "<DIV style=\"position:absolute\">";
             $html .= "<DIV NAME=\"Calendar\">";
             //Refresh button. Upper left.
-            $html .= "<DIV NAME=\"CalendarRefreshButton\" CLASS='RefreshButton' style='height:8%;width:9%;z-index:1'>";
+            $html .= "<DIV NAME=\"CalendarRefreshButton\" CLASS='RefreshButton' style='position:absolute;height:8%;width:9%;z-index:1'>";
+            $html .= "<FORM METHOD=\"Get\" ACTION=\"calico_compositecalendar.php\">";
+            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Refresh\">";
+            $html .= "</FORM>";
             $html .= "</DIV>";
 
             $columnwidth = 13;
@@ -1446,11 +2166,15 @@ class Bitmap {
             $rowheight = 2;
 
             // Column headers.
+
+            $i = 1;
             foreach($segments["Start"] as $segment) {
-                $html .= "<DIV NAME=\"CalendarColumnHeader\" CLASS='ColumnHeader' style='height:8%;width:13%;z-index:1'>";
-                $html .= date("j", $segment) . "     " . date("l", $segment);
+                $html .= "<DIV NAME=\"CalendarColumnHeader\" CLASS='ColumnHeader' style='position:absolute;left:" . $i * 2 . "00px;z-index:1'>";
+                $html .= "<B>" . date("j", $segment) . "</B>&nbsp;&nbsp;&nbsp;&nbsp;" . date("l", $segment);
                 $html .= "</DIV>";
+                $i++;
             }
+
 
             for($t = $segments["Start"][0]; $t < $segments["End"][0]; $t += $increment) {
                 //Row headers.
@@ -1472,16 +2196,32 @@ class Bitmap {
             for($t = 0; $t < count($segments["Start"]); $t++) {
                 $segmentstart = $segments["Start"][$t]; // For weekly, this is days. Segment (of time) Start here = CurrentDay @ 12:00AM
                 $segmentend = $segments["End"][$t]; //Segment (of time) End here = NextDay @ 12:00AM
-                $value = OrganizeEvents($segmentstart, $segmentend, $increment, $events);
-                $segevents = $value["Organize"];
-                $segment["Width"][$t] = $this->GetMaxWidth($segevents);
-                // Rows.
-                foreach($segevents as $event) {
-                    $html .= "<DIV NAME=\"CalendarRow\" CLASS='Row' style='height:4%;width:13%;z-index:1'>";
+
+                $divevents = Array();
+                $bitmap = new Bitmap(48);
+                foreach($events as $event) {
+                    $roundstart = $this->RoundStartTime($event->GetStartDate());
+                    $roundend = $this->RoundEndTime($event->GetEndDate());
+                    if(TimeRangeContains($segmentstart, $segmentend, $roundstart, $roundend)) {
+                        $startrow = date("H", $roundstart) + date("i", $roundstart) / 30;
+                        $numrows = (date("H", $roundend) + date("i", $roundend) / 30) - $startrow;
+
+
+                        $column = $bitmap->FindEmpty($startrow, $numrows);
+                        $bitmap->FillRows($startrow, $numrows, $column);
+
+                        $divevents[] = new DivEvent($roundstart, $roundend, $startrow, $startrow + $numrows, $column, $event);
+                    }
+                }
+
+
+
+                foreach($divevents as $divevent) {
+                    $html .= "<DIV NAME=\"CalendarRow\" CLASS='Row' style='top:4%;right:4%;height:4%;width:13%;z-index:1'>";
+                    $html .= $divevent->GetEvent()->GetSummary();
                     $html .= "</DIV>";
 
                 }
-
             }
 
 
@@ -1489,7 +2229,7 @@ class Bitmap {
 
             // Need to create divs, filled with buttons, that span each segment, and are positioned over the above divs.
             // Relative positioning, with percentage-based sizes should work here.
-
+            $html .= "</DIV>";
             $html .= "</DIV>";
 
             return $html;
@@ -1514,17 +2254,24 @@ class Bitmap {
         }
 
         public function Refresh() {
-            $query = "SELECT `CalendarID` FROM `calico`.`calendars` WHERE `IsDisplayed` = 1 AND `UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL\SQL::DataQuery($query);
+            $this->CalendarList = Array();
+
+            $query = "SELECT `CalendarID` FROM `calico`.`calendars` WHERE `IsDisplayed` = 1 AND `UserID` = " . $this->User->GetUserID() . ";";
+            $data = \SQL\SQL::DataQuery($query);
 
             while($row = mysql_fetch_array($data))
             {
                 $this->CalendarList[] = new Calendar($row['CalendarID']);
             }
+            $this->CompositeDropDown->Refresh();
+            $this->CompositeCheckBox->Refresh();
+
         }
 
         public function Postback() {
             //@todo: Get DatePicker value and what not here.
+            $this->CompositeDropDown->Postback();
+            $this->CompositeCheckBox->Postback();
 
         }
 
@@ -1566,7 +2313,7 @@ class Bitmap {
 
         private function RenderControl() {
             $html = "";
-
+            $html .= "<FORM NAME=\"input\" ACTION=\"calico_login.php\" METHOD=\"post\">";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
             $html .= "Username:";
             $html .= "<INPUT TYPE=\"text\" NAME=\"Username\">";
@@ -1574,12 +2321,13 @@ class Bitmap {
             $html .= "Password:";
             $html .= "<INPUT TYPE=\"text\" NAME=\"Password\">";
             $html .= "<BR>";
-            $html .= "<INPUT TYPE=\"submit\" VALUE=\"Login\">";
+            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Login\">";
             if($this->LoginError) {
                 $html .= "<BR>";
                 $html .= "<SPAN CLASS=\"Error\">Login Error: Please check that your username and password are valid.</SPAN>";
             }
             $html .= "</DIV>";
+            $html .= "</FORM>";
 
             return $html;
         }
@@ -1590,13 +2338,13 @@ class Bitmap {
 
         // Returns boolean, indicating whether a user was successfully validated.
         public function Validate($Username, $Password) {
-            $query = "SELECT Count(`Username`) FROM `calico.users` WHERE `Username` = '" . base64_encode($Username) . "' AND `Password` = '" . base64_encode($Password) . "';";
-            $data = SQL::DataQuery($query);
+            $query = "SELECT Count(`Username`) FROM `calico`.`users` WHERE `Username` = '" . base64_encode($Username) . "' AND `Password` = '" . base64_encode($Password) . "';";
+            $data = \SQL\SQL::DataQuery($query);
             $row = mysql_fetch_array($data);
-            $count = $row["Count"];
+            $count = $row["Count(`Username`)"];
 
             if($count > 0) {
-                return new User($Username, $Password);
+                return new \Data\User($Username, $Password);
             }
             else {
                return null;
@@ -1613,11 +2361,13 @@ class Bitmap {
 
         public function Postback() {
             if(isset($_POST["Username"]) && isset($_POST["Password"])) {
-                $this->User = Validate($_POST["Username"], $_POST["Password"]);
+                $this->User = $this->Validate($_POST["Username"], $_POST["Password"]);
                 if($this->User != null) {
+                    //include_once("calico_classes_v2.php");
                     session_start();
-                    $_SESSION["USER"] = $this->User;
-                    \HTTP\HTTPRedirector("calico_compositecalendar.php");
+                    //session_register("USER");
+                    $_SESSION["USER"] = serialize($this->User);
+                    \HTTP\HTTPRedirector::Redirect("calico_compositecalendar.php");
                 }
             }
             $this->LoginError = true;
@@ -1652,24 +2402,31 @@ class Bitmap {
 
         public function __construct($User) {
             $this->User = $User;
-            $this->Refresh();
+            //$this->Refresh();
         }
 
         private function RenderControl() {
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            //@todo: Finish this design. A slight variation on the previous edition, but something easier to programmatically edit (hopefully).
-            $html .= "Name:";
-            $html .= "<INPUT TYPE=\"text\" NAME=\"name\" />";
+            $html .= "<FORM METHOD='post'  ACTION='calico_calendar.php'>";
+            $html .= "Calico: Calendar Manager";
+            $html .= "<BR>";
+            $html .= "Calendar Name:";
+            $html .= "<INPUT TYPE=\"text\" NAME=\"CalendarName\" />";
+            $html .= "<INPUT TYPE=\"submit\" NAME=\"AddCalendar\" VALUE=\"Add\" />";
             $html .= "<BR>";
             //@todo: Checkboxes to select a calendar, and a button to delete them.
             foreach($this->CalendarList as $calendar) {
 
-                $html .= "<INPUT TYPE=\"checkbox\" NAME=\"\" VALUE=\"\" />";
+                $html .= "<INPUT TYPE=\"checkbox\" NAME=\"Calendars[]\" VALUE=\"" . base64_encode($calendar) . "\" />";
                 $html .= $calendar;
                 $html .= "<BR>";
             }
-            $html .= "<INPUT TYPE=\"submit\" VALUE=\"Delete\" />";
+            $html .= "<INPUT TYPE=\"submit\" NAME=\"DeleteCalendar\" VALUE=\"Delete\" />";
+            $html .= "</FORM>";
+            $html .= "<FORM METHOD='post' ACTION='calico_compositecalendar.php'>";
+            $html .= "<INPUT TYPE=\"submit\"  VALUE=\"Composite Calendar\" />";
+            $html .= "</FORM>";
             $html .= "</DIV>";
 
             return $html;
@@ -1682,7 +2439,7 @@ class Bitmap {
         public function Refresh() {
             //@todo: Pull from database here. Fill with calendars as per the user.
             $query = "SELECT `CalendarName` FROM `calico`.`calendars` WHERE `UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL\SQL::DataQuery($query);
+            $data = \SQL\SQL::DataQuery($query);
 
 
             // Lock this down to a single row.
@@ -1699,7 +2456,28 @@ class Bitmap {
             }
         }
 
+        private function DeleteCalendars($Calendars) {
+            foreach($Calendars as $calendar) {
+                $query = "DELETE FROM `calico`.`calendars` WHERE `UserID` = " . $this->User->GetUserID() . " AND `CalendarName`= '" . $calendar . "';";
+                $data = \SQL\SQL::NonDataQuery($query);
+            }
+
+        }
+
+        private function AddCalendar($CalendarName) {
+            $query = "INSERT INTO `calico`.`calendars` (`CalendarName`, `IsDisplayed`, `UserID`) VALUES ('" . $CalendarName . "', 0," . $this->User->GetUserID() . ");";
+            $data = \SQL\SQL::NonDataQuery($query);
+
+        }
+
         public function Postback() {
+            if(isset($_POST["AddCalendar"]) && isset($_POST["CalendarName"]) && $_POST["CalendarName"] != "") {
+                $this->AddCalendar(base64_encode($_POST["CalendarName"]));
+            }
+            if(isset($_POST["DeleteCalendar"])) {
+                $this->DeleteCalendars($_POST["Calendars"]);
+            }
+            
 
         }
 
@@ -1732,12 +2510,15 @@ class Bitmap {
 
         public function __construct($User) {
             $this->User = $User;
-            $this->Refresh();
+            //$this->Refresh();
         }
 
         private function RenderControl() {
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
+            $html .= "Calico: Feed Manager";
+            $html .= "<BR>";
+            $html .= "<FORM METHOD='Post' ACTION='calico_feed.php'>";
             $html .= "Feed Username:";
             $html .= "<INPUT TYPE=\"text\" NAME=\"feedusername\" />";
             $html .= "Feed Password:";
@@ -1746,20 +2527,26 @@ class Bitmap {
             $html .= "<INPUT TYPE=\"text\" NAME=\"feedurl\" />";
             $html .= "Calendar:";
             $html .= "<SELECT NAME=\"CalendarSelect\">";
-            foreach($this->CalendarData as $calendar) {
-                $html .= "<OPTION VALUE=\"" . $calendar . "\">" . $calendar . "</OPTION>";
+            for($i = 0; $i < count($this->CalendarData["CalendarName"]); $i++) {
+                $html .= "<OPTION VALUE=\"" . $this->CalendarData["CalendarID"][$i] . "\">" . $this->CalendarData["CalendarName"][$i] . "</OPTION>";
             }
-
             $html .= "</SELECT>";
+            $html .= "<INPUT TYPE=\"submit\" NAME=\"AddFeed\" VALUE=\"Add\" />";
             $html .= "<BR>";
 
             for($i = 0; $i < count($this->FeedData["FeedURL"]); $i++) {
-                //@todo: Rethink this name (Feed[]);
-                $html .= "<INPUT TYPE=\"checkbox\" NAME=\"Feed[]\" VALUE=\"" . $i . "\">";
+                $html .= "<INPUT TYPE=\"checkbox\" NAME=\"Feeds[]\" VALUE=\"" . $this->FeedData["SuperFeedID"][$i] . "\">";
                 $html .= $this->FeedData["CalendarName"][$i];
+                $html .= "&nbsp;&nbsp;&nbsp;&nbsp;";
                 $html .= $this->FeedData["FeedURL"][$i];
                 $html .= "<BR>";
             }
+            $html .= "<INPUT TYPE=\"submit\" NAME=\"DeleteFeed\" VALUE=\"Delete\" />";
+            $html .= "<BR>";
+            $html .= "</FORM>";
+            $html .= "<FORM METHOD='Post' ACTION='calico_compositecalendar.php'>";
+            $html .= "<INPUT TYPE=\"submit\" VALUE=\"Composite Calendar\" />";
+            $html .= "</FORM>";
             $html .= "</DIV>";
 
             return $html;
@@ -1780,13 +2567,15 @@ class Bitmap {
         //@todo: Need another query to grab distinct Calendar Names.
         private function GetCalendarNames() {
             $this->CalendarData["CalendarName"] = Array();
+            $this->CalendarData["CalendarID"] = Array();
 
-            $query = "SELECT `CalendarName` FROM `calico`.`calendars` WHERE `UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL\SQL::DataQuery($query);
+            $query = "SELECT `CalendarName`, `CalendarID` FROM `calico`.`calendars` WHERE `UserID` = '" . $this->User->GetUserID() . "';";
+            $data = \SQL\SQL::DataQuery($query);
 
             while($row = mysql_fetch_array($data))
             {
                 $this->CalendarData["CalendarName"][] = base64_decode($row['CalendarName']);
+                $this->CalendarData["CalendarID"][] = $row['CalendarID'];
                 //$this->FeedData["FeedURL"][] = base64_decode($row['FeedURL']);
             }
 
@@ -1796,20 +2585,40 @@ class Bitmap {
         private function GetURLs() {
             $this->FeedData["CalendarName"] = Array();
             $this->FeedData["FeedURL"] = Array();
+            $this->FeedData["SuperFeedID"] = Array();
 
-            $query = "SELECT `S`.`FeedURL`, `C`.`CalendarName` FROM `calico`.`calendars` AS `C` INNER JOIN `calico`.`superfeeds` AS `S` ON `C`.`CalendarID` = `S`.`CalendarID` WHERE `C`.`UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL\SQL::DataQuery($query);
+            $query = "SELECT `S`.`FeedURL`, `S`.`SuperFeedID`,`C`.`CalendarName` FROM `calico`.`calendars` AS `C` INNER JOIN `calico`.`superfeeds` AS `S` ON `C`.`CalendarID` = `S`.`CalendarID` WHERE `C`.`UserID` = '" . $this->User->GetUserID() . "';";
+            $data = \SQL\SQL::DataQuery($query);
 
             while($row = mysql_fetch_array($data))
             {
                 $this->FeedData["CalendarName"][] = base64_decode($row['CalendarName']);
                 $this->FeedData["FeedURL"][] = base64_decode($row['FeedURL']);
+                $this->FeedData["SuperFeedID"][] = $row['SuperFeedID'];
             }
 
         }
 
+        private function AddFeed($FeedUsername, $FeedPassword, $FeedURL, $Calendar) {
+            $query = "INSERT INTO `calico`.`superfeeds` (`CalendarID`, `FeedURL`, `FeedUsername`, `FeedPassword`) VALUES (" . $Calendar . ",'" . base64_encode($FeedURL) . "','" . base64_encode($FeedUsername) . "','" . base64_encode($FeedPassword) . "');";
+            $data = \SQL\SQL::NonDataQuery($query);
+        }
+
+        private function DeleteFeeds($Feeds) {
+            foreach($Feeds as $feed) {
+                $query = "DELETE FROM `calico`.`superfeeds` WHERE `SuperFeedID` = " . $feed . ";";
+                $data = \SQL\SQL::NonDataQuery($query);
+            }
+        }
+
         public function Postback() {
-            //@todo: get submit button postbacl here.
+            if(isset($_POST["AddFeed"])) {
+                $this->AddFeed($_POST["feedusername"], $_POST["feedpassword"], $_POST["feedurl"], $_POST["CalendarSelect"]);
+            }
+            if(isset($_POST["DeleteFeed"])) {
+                $this->DeleteFeeds($_POST["Feeds"]);
+            }
+
 
         }
 
@@ -1851,7 +2660,7 @@ class Bitmap {
             $feeds = Array();
 
             $query = "SELECT `S`.`FeedURL` FROM `calico`.`calendars` AS `C` INNER JOIN `calico`.`superfeeds` AS `S` ON `C`.`CalendarID` = `S`.`CalendarID` WHERE `C`.`UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL\SQL::DataQuery($query);
+            $data = \SQL\SQL::DataQuery($query);
 
             while($row = mysql_fetch_array($data))
             {
@@ -1867,7 +2676,7 @@ class Bitmap {
             $feeddata["FeedPassword"] = Array();
 
             $query = "SELECT `S`.`FeedURL`, `S`.`FeedUsername`, `S`.`FeedPassword` FROM `calico`.`calendars` AS `C` INNER JOIN `calico`.`superfeeds` AS `S` ON `C`.`CalendarID` = `S`.`CalendarID` WHERE `C`.`UserID` = '" . $this->User->GetUserID() . "';";
-            $data = SQL\SQL::DataQuery($query);
+            $data = \SQL\SQL::DataQuery($query);
 
             while($row = mysql_fetch_array($data))
             {
@@ -1884,19 +2693,41 @@ class Bitmap {
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
             $html .= "<SCRIPT LANGUAGE=\"javascript\" SRC=\"calendar\calendar.js\"></SCRIPT>";
             if($this->Event == null) {
-                $feeds = GetFeedURLs();
+                $feeds = $this->GetFeedURLs();
+                $html .= "Feed:";
                 $html .= "<SELECT NAME=\"SelectedFeed\">";
                 for($i = 0; $i < count($feeds); $i++) {
                     $html .= "<OPTION VALUE=\"" . $i . "\">" . $feeds[$i] . "</OPTION>";
                 }
                 $html .= "</SELECT>";
+                $html .= "<BR>";
             }
+
             $html .= "Title:";
-            $html .= "<INPUT TYPE=\"text\" NAME=\"Summary\" SIZE=\"40%\" VALUE=\"" . $this->Event->GetSummary() . "\">"; //@todo: Possibly extract Size component here to CSS.
+            $html .= "<INPUT TYPE=\"text\" NAME=\"Summary\" SIZE=\"40%\" VALUE=\"";
+            if($this->Event != null) {
+                $html .=  $this->Event->GetSummary();
+            }
+            $html .= "\">"; //@todo: Possibly extract Size component here to CSS.
+            $html .= "<BR>";
             $html .= "Location:";
-            $html .= "<INPUT TYPE=\"text\" NAME=\"Location\" SIZE=\"40%\" VALUE=\"" . $this->Event->GetLocation() . "\">";
-            $html .= $this->RenderPanel("Start", $this->Event->GetStartDate());
-            $html .= $this->RenderPanel("End",  $this->Event->GetEndDate());
+            $html .= "<INPUT TYPE=\"text\" NAME=\"Location\" SIZE=\"40%\" VALUE=\"";
+            if($this->Event != null) {
+                $html .= $this->Event->GetLocation();
+            }
+            $html .= "\">";
+            $html .= "<BR>";
+
+            $startdate = time();
+            $enddate = time();
+            if($this->Event != null) {
+                $startdate = $this->Event->GetStartDate();
+                $enddate = $this->Event->GetEndDate();
+            }
+            $html .= $this->RenderPanel("Start", $startdate);
+            $html .= $this->RenderPanel("End", $enddate);
+
+
 
             /*
             $html .= "Repeat:";
@@ -2017,11 +2848,15 @@ class Bitmap {
             $html .= "<p>The code is written in such a way that the page degrades gracefully in browsers that don't support JavaScript or CSS.</p>";
             $html .= "</div>";
             $html .= "</div>";
+            $html .= "<BR>";
 
             $html .= "Description:";
             $html .= "<TEXTAREA TYPE=\"text\" NAME=\"Description\" ROWS=\"5\" COLS=\"60\" WRAP=\"soft\">";
-            $html .= $this->Event->GetDescription();
+            if($this->Event != null) {
+                $html .= $this->Event->GetDescription();
+            }
             $html .= "</TEXTAREA>";
+            $html .= "<BR>";
 
 
             $html .= "</DIV>";
@@ -2036,7 +2871,7 @@ class Bitmap {
             $html = "";
             $html .= $Prefix . " Date:";
             //@todo: give an appropriate html name to this.
-            $myCalendar = new tc_calendar($Prefix . "datepicker", true, false); //date5->HTML name.
+            $myCalendar = new \TCCalendar\tc_calendar($Prefix . "datepicker", true, false); //date5->HTML name.
             $myCalendar->setIcon("calendar/images/iconCalendar.gif");
             $myCalendar->setDate(date('d', strtotime($DefaultTime))
                 , date('m', strtotime($DefaultTime))
@@ -2061,7 +2896,7 @@ class Bitmap {
             for($hour = 1; $hour <= 12; $hour++)
             {
                 $html .= "<OPTION value=\"" . str_pad($hour, 2, "0", STR_PAD_LEFT) . "\"";
-                if($hour == date("g", srttotime($DefaultTime))) {
+                if($hour == date("g", strtotime($DefaultTime))) {
                     $html .= " selected=\"selected\"";
                 }
                 $html .= ">" . $hour . "</OPTION>";
@@ -2071,7 +2906,7 @@ class Bitmap {
             for($minute = 0; $minute < 60; $minute++)
             {
                 $html .= "<OPTION VALUE=\"" . str_pad($minute, 2, "0", STR_PAD_LEFT) . "\"";
-                if($minute == date("i", srttotime($DefaultTime))) {
+                if($minute == date("i", strtotime($DefaultTime))) {
                     $html .= " selected=\"selected\"";
                 }
                 $html .= ">" . str_pad($minute, 2, "0", STR_PAD_LEFT) . "</OPTION>";
@@ -2079,16 +2914,17 @@ class Bitmap {
             $html .= "</SELECT>";
             $html .= "<SELECT NAME=\"" . $Prefix . "period\">"; // $_POST["startperiod"], $_POST["startperiod"]
             $html .= "<OPTION VALUE=\"AM\"";
-            if("AM" == date("A", srttotime($DefaultTime))) {
+            if("AM" == date("A", strtotime($DefaultTime))) {
                 $html .= " selected=\"selected\"";
             }
             $html .= ">AM</OPTION>";
             $html .= "<OPTION VALUE=\"PM\"";
-            if("PM" == date("A", srttotime($DefaultTime))) {
+            if("PM" == date("A", strtotime($DefaultTime))) {
                 $html .= " selected=\"selected\"";
             }
             $html .= ">PM</OPTION>";
             $html .= "</SELECT>";
+            $html .= "<BR>";
 
             return $html;
         }
@@ -2129,7 +2965,7 @@ class Bitmap {
                 }
             }
 
-            HTTP\HTTPRedirector("calico_compositecalendar.php");
+            //\HTTP\HTTPRedirector::Redirect("calico_compositecalendar.php");
 
         }
 
@@ -2142,7 +2978,9 @@ class Bitmap {
         }
 
         public function Refresh() {
-            $this->Event->Refresh();
+            if($this->Event != null) {
+                $this->Event->Refresh();
+            }
         }
 
         public function CSSClass($CSSClass = null) {
@@ -2165,702 +3003,7 @@ class Bitmap {
     }
 }
 
-namespace Data {
 
-    // User -> class for passing around user information. Should only pass around the UserID (a unqiue SQL ID), for security reasons, in a Session object.
-    class User {
-        private $SQL_ID = "";
-
-        public function __construct($Username, $Password) {
-            // Probably want to Base64 encode the values going into and out of the MySQL database, to prevent a SQL Injection attack.
-            $query = "SELECT `UserID` FROM `calico`.`users` WHERE `Username` = '" . base64_encode($Username) . "' AND `Password` = '" . base64_encode($Password) . "';";
-            $data = SQL::DataQuery($query);
-            $row = mysql_fetch_array($data);
-            $this->SQL_ID = $row["UserID"];
-        }
-
-        public function GetUserID() {
-            return $this->SQL_ID;
-        }
-    }
-    // Calendar -> class for containg user-defined calendars.
-    class Calendar {
-        private $SQL_ID = "";
-        //private $CalendarName = "";
-        private $SuperFeedList = Array();
-
-        public function __construct($CalendarID) {
-            $this->SQL_ID = $CalendarID;
-            $this->Refresh();
-        }
-
-        public function GetSuperFeedList() {
-            return $this->SuperFeedList;
-        }
-
-        public function Refresh() {
-            $query = "SELECT `SuperFeedID` FROM `calico`.`superfeeds` WHERE `CalendarID` = '" . $this->SQL_ID . "';";
-            $data = SQL\SQL::DataQuery($query);
-
-            while($row = mysql_fetch_array($data))
-            {
-                $this->SuperFeedList[] = new SuperFeed($row['SuperFeedID']);
-            }
-
-        }
-
-    }
-
-    //@todo: Check Fiddler for variant HTTP requests, and confirm the new object model based off of these observations.
-    //@todo: Following that, use the new MySQL Query / Table Analyzer to rebuild the sql table model to better specifications.
-
-    // SuperFeed -> class for storing the primary link for the collection of CalDav resources.
-    class SuperFeed {
-        private $SQL_ID = "";
-        private $FeedURL = "";
-        private $ETAG = ""; // I may have some use for this.
-        private $FeedUsername = "";
-        private $FeedPassword = "";
-        private $EventList = Array();
-
-
-
-        // @todo: Rewrite this more intelligently.
-        public function __construct($SuperFeedID) {
-            $this->SQL_ID = $SuperFeedID;
-            $this->Refresh();
-        }
-
-        public function GetEventList() {
-            return $this->EventList;
-        }
-
-        public function Refresh() {
-            $query = "SELECT `FeedURL`, `FeedUsername`, `FeedPassword` FROM `calico`.`superfeeds` WHERE `SuperFeedID` = '" . $this->SuperFeedID . "';";
-            $data = SQL\SQL::DataQuery($query);
-
-            $row = mysql_fetch_array($data);
-            $this->FeedURL = base64_decode($row['FeedURL']);
-            $this->FeedUsername = base64_decode($row['FeedUsername']);
-            $this->FeedPassword = base64_decode($row['FeedPassword']);
-        }
-
-        private function Propfind() {
-            $headers = Array();
-            $headers = $this->StandardHeaders();
-            $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Depth"] = "0";
-            $headers["Authorization"] = base64_encode($this->FeedUsername) . ":" . base64_encode($this->FeedPassword);
-
-            $content = Array();
-            $content[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-            $content[] = "<D:propfind xmlns:D=\"DAV:\">";
-            $content[] = "<D:prop>";
-            $content[] = "<D:getcontenttype/>";
-            $content[] = "<D:resourcetype/>";
-            $content[] = "<D:getetag/>";
-            $content[] = "</D:prop>";
-            $content[] = "</D:propfind>";
-
-            $this->ParsePropfind(\HTTP\HTTPRequests::Propfind($this->URL, $headers, $content));
-
-        }
-
-        private function ParsePropfind($String) {
-
-            $Xml = new SimpleXMLElement($String);
-            $ResponseList = $Xml->multistatus->response->children();
-            // Don't need the first one.
-            for($i = 1; $i < count($ResponseList); $i++) {
-                $feedurl = parse_url($this->FeedURL, PHP_URL_SCHEME) . "://" . parse_url($this->FeedURL, PHP_URL_HOST) . $ResponseList[$i]->href; //$Xml->xpath("/multistatus/response/href"); // Modify these for iteration.
-                $etag = $ResponseList[$i]->propstat->prop->getetag;//$Xml->xpath("/multistatus/response/propstat/prop/getetag");
-                $this->EventList[] = new Event($feedurl, $this->FeedUsername, $this->FeedPassword, $etag);
-            }
-        }
-
-    }
-
-    // Event -> class for storing event information. Due to this redesign, Event will now be handling some of the functions previously found in the Feed class.
-    class Event {
-        private $FeedURL = "";
-        private $FeedUsername = "";
-        private $FeedPassword = "";
-        private $ETAG = "";
-        private $Summary = "";
-        private $Location = "";
-        private $Description = "";
-        private $UID = "";
-        private $StartDate = null;
-        private $EndDate = null;
-        private $XMozGeneration = 0;
-        private $DateStamp = null;
-        private $Created = null;
-        private $LastModified = null;
-        private static $BannedUIDs = Array(); // Sanity check, to ensure that we aren't going to use an existing UID.
-
-        public static function GetBannedUIDs() {
-            return $this->BannedUIDs;
-        }
-
-        public function GetSummary() {
-            return $this->Summary;
-        }
-
-        public function GetLocation() {
-            return $this->Location;
-        }
-
-        public function GetDescription() {
-            return $this->Description;
-        }
-
-        public function GetStartDate() {
-            return $this->StartDate;
-        }
-
-        public function GetEndDate() {
-            return $this->EndDate;
-        }
-
-        //@todo: Verify that this is the correct, or at least, a very good idea. A default constructor that just takes in the string containing VEVENT information (raw).
-        public function __construct($FeedURL, $FeedUsername, $FeedPassword, $ETAG) {
-            //ParseVEvent($String);
-            $this->FeedUsername = $FeedUsername;
-            $this->FeedPassword = $FeedPassword;
-            $this->FeedURL = $FeedURL;
-            $this->ETAG = $ETAG;
-            $this->Refresh();
-
-        }
-
-        // @todo: Store this here until I know what to do with it.
-        public function GetNewUniqueID() {
-            $isnew = true;
-            $newUID = "";
-            do {
-                $newUID = str_replace(".", "", uniqid("", true));
-                if(in_array($newUID, $this->GetBannedUIDs())) {
-                        $isnew = false;
-                }
-            } while($isnew == false);
-
-            return $newUID;
-        }
-
-        public function Refresh() {
-            $this->Report();
-        }
-
-        public function Report() {
-            $headers = Array();
-            $headers = $this->StandardHeaders();
-            $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
-            $headers["Depth"] = "1";
-
-            $content = "";
-            $content .= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-            $content .= "<calendar-multiget xmlns:D=\"DAV:\" xmlns=\"urn:ietf:params:xml:ns:caldav\">";
-            $content .= "<D:prop>";
-            $content .= "<D:getetag/>";
-            $content .= "<calendar-data/>";
-            $content .= "</D:prop>";
-            $content .= "<D:href>" . parse_url($this->URL, PHP_URL_PATH) . "</D:href>";
-            $content .= "</calendar-multiget>";
-
-            $this->ParseReport(\HTTP\HTTPRequests::Report($this->URL, $headers, $content));
-
-        }
-
-
-        public function Update($Summary, $Location, $Description, $StartDate, $EndDate, $RRule = null) {
-            $this->Summary = $Summary;
-            $this->Location = $Location;
-            $this->Description = $Description;
-            $this->StartDate = $StartDate;
-            $this->EndDate = $EndDate;
-
-            $this->Put();
-
-        }
-
-        private function Put() {
-            // @todo: Rewrite the HTTP requests in this object to flow more.
-            $headers = Array();
-            $headers = $this->StandardHeaders();
-            $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
-            $headers["If-Match"] = $this->ETAG;
-
-            $content = Array();
-            $content[] = "BEGIN:VCALENDAR";
-            $content[] = "PRODID:Calico";
-            $content[] = "VERSION:2.0";
-
-            $content[] = "BEGIN:VTIMEZONE";
-            $content[] = "TZID:America/New_York"; // date_default_timezone_get()
-            $content[] = "X-LIC-LOCATION:America/New_York";
-
-            //@todo: Implement Daylight-Savings / Other Timezones, instead of hard coding them.
-
-            //Verify which one is Daylight, if it has Daylight.
-
-            //Algorithm -> create a date on June 1st, then set it to December 1st. Check timezones on both.
-            // If they match, there is no DayLight savings.
-
-            //New idea: nevermind this nonsense, for now. Apparently, not only are date / times a level of insanity (as I already knew),
-            //but timezones + daylight savings times are moving targets. It appears that some countries are randomly trying out Daylight-Savings times.
-
-            $content[] = "BEGIN:DAYLIGHT";
-            $content[] = "TZOFFSETFROM:-0500";
-            $content[] = "TZOFFSETTO:-0400";
-            $content[] = "TZNAME:EDT";
-            $content[] = "DTSTART:19700308T020000";
-            $content[] = "RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3";
-            $content[] = "END:DAYLIGHT";
-
-            $content[] = "BEGIN:STANDARD";
-            $content[] = "TZOFFSETFROM:-0400";
-            $content[] = "TZOFFSETTO:-0500";
-            $content[] = "TZNAME:EST";
-            $content[] = "DTSTART:19701101T020000";
-            $content[] = "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11";
-            $content[] = "END:STANDARD";
-            $content[] = "END:VTIMEZONE";
-            array_merge($content, $this->BuildVEvent($this->UID, $this->Summary, $this->StartDate, $this->EndDate, $this->Location, $this->Description, time(), $this->Created, time())); //GenerateUID goes in here.
-            $content[] = "END:VCALENDAR";
-
-            //array_merge($content, $this->BuildVEvent($uid, $Summary, $StartDate, $EndDate, $Location, $Description, $LastModified, $Created, $DateStamp));
-
-
-            //$headers["Content-Length"] = $this->ContentLength($content);
-
-            $this->ParsePut(\HTTP\HTTPRequests::Put($this->URL, $headers, $content));
-
-        }
-
-        public function Delete() {
-            $headers = Array();
-            $headers = $this->StandardHeaders();
-            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
-            $headers["If-Match"] = $this->ETAG;
-
-            $this->ParseDelete(\HTTP\HTTPRequests::Delete($this->URL, $headers));
-        }
-
-
-        private function ParseDelete($String) {
-            // HTTP/1.1 204 No Content
-            if (strlen(strstr($String,"HTTP/1.1 204 No Content"))>0) {
-                return true;
-            }
-
-            return false;
-        }
-
-        private function ParseReport($String) {
-            // HTTP/1.1 207 Multi-Status
-            if (!(strlen(strstr($String,"HTTP/1.1 207 Multi-Status"))>0)) {
-                 return false;
-            }
-
-            $Xml = SimpleXMLElement(strstr($String, "\r\n\r\n"));
-            $this->ETAG = $Xml->multistatus->response[0]->propstat->prop->getetag;
-            $vevent = $Xml->multistatus->response[0]->propstat->prop->children("urn:ietf:params:xml:ns:caldav");
-            ParseVEvent($vevent[0]);
-
-            return true;
-
-        }
-
-        //@todo: Move creation functions to Event.
-        public static function Create($FeedURL, $FeedUsername, $FeedPassword, $Summary, $StartDate, $EndDate, $Location, $Description, $RRule = null) {
-
-            $headers = Array();
-            $headers = $this->StandardHeaders();
-            $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Authorization"] = base64_encode($FeedUsername . ":" . $FeedPassword);
-            $headers["If-None-Match"] = "*";
-
-            $uid = GetNewUniqueID();
-            $content = Array();
-            $content[] = "BEGIN:VCALENDAR";
-            $content[] = "PRODID:Calico";
-            $content[] = "VERSION:2.0";
-
-            $content[] = "BEGIN:VTIMEZONE";
-            $content[] = "TZID:America/New_York"; // date_default_timezone_get()
-            $content[] = "X-LIC-LOCATION:America/New_York";
-
-            //@todo: Implement Daylight-Savings / Other Timezones, instead of hard coding them.
-
-            //Verify which one is Daylight, if it has Daylight.
-
-            //Algorithm -> create a date on June 1st, then set it to December 1st. Check timezones on both.
-            // If they match, there is no DayLight savings.
-
-            //New idea: nevermind this nonsense, for now. Apparently, not only are date / times a level of insanity (as I already knew),
-            //but timezones + daylight savings times are moving targets. It appears that some countries are randomly trying out Daylight-Savings times.
-
-            $content[] = "BEGIN:DAYLIGHT";
-            $content[] = "TZOFFSETFROM:-0500";
-            $content[] = "TZOFFSETTO:-0400";
-            $content[] = "TZNAME:EDT";
-            $content[] = "DTSTART:19700308T020000";
-            $content[] = "RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3";
-            $content[] = "END:DAYLIGHT";
-
-            $content[] = "BEGIN:STANDARD";
-            $content[] = "TZOFFSETFROM:-0400";
-            $content[] = "TZOFFSETTO:-0500";
-            $content[] = "TZNAME:EST";
-            $content[] = "DTSTART:19701101T020000";
-            $content[] = "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11";
-            $content[] = "END:STANDARD";
-            $content[] = "END:VTIMEZONE";
-            array_merge($content, $this->BuildVEvent($uid, $Summary, $StartDate, $EndDate, $Location, $Description, time(), time(), time())); //GenerateUID goes in here.
-            $content[] = "END:VCALENDAR";
-
-            $url = $FeedURL . $uid . ".ics"; //@todo: Construct URL (UID) to post to here.
-            $response = \HTTP\HTTPRequests::Put($url, $headers, $content);
-
-            if (strlen(strstr($response,"HTTP/1.1 201 Created"))>0) {
-                $Event = new Event($url);
-                return $Event;
-            }
-
-            return null;
-        }
-
-        private function ParsePut($String) {
-            if (strlen(strstr($String,"HTTP/1.1 204 No Content"))>0) {
-                $this->ETAG = Extract\Extract::GetETag($String);
-                return true;
-            }
-            return false;
-        }
-
-        private function ParseVEvent($String) {
-
-            $daylight = \Extract\Extract::GetDaylight($String);
-            $vevent = \Extract\Extract::GetVEvent($String);
-
-            $this->Summary = \Extract\Extract::GetSummary($vevent);
-
-
-            $start = explode(":", \Extract\Extract::GetStartDate($vevent));
-            $startdatetime = new DateTime($start[1]);
-            $startdatetimezone = timezone_open($start[0]);
-            $startdatetime->setTimezone($startdatetimezone);
-            $this->StartDate =  $startdatetime->getTimestamp();
-
-            $end = explode(":", \Extract\Extract::GetEndDate($vevent));
-            $enddatetime = new DateTime($end[1]);
-            $enddatetimezone = timezone_open($end[0]);
-            $enddatetime->setTimezone($enddatetimezone);
-            $this->EndDate = $enddatetime->getTimestamp();
-
-            $this->Location = \Extract\Extract::GetLocation($vevent);
-            $this->Description = \Extract\Extract::GetDescription($vevent);
-            $this->Created = \Extract\Extract::GetCreated($vevent);
-            $this->LastModified = \Extract\Extract::GetLastModified($vevent);
-            $this->DateStamp =  \Extract\Extract::GetDateStamp($vevent);
-            $this->UID = \Extract\Extract::GetUID($vevent);
-            //$this->XMozGeneration = \Extract\Extract::GetXMozGeneration($vevent);
-            //$this->rrule = \Extract\Extract::GetRRule($vevent);
-
-            if(!in_array($this->UID, $this->BannedUIDs)) {
-                $this->BannedUIDs[] = $this->UID;
-            }
-
-
-
-        }
-
-        public static function BuildVEvent($UID, $Summary, $StartDate, $EndDate, $Location, $Description, $LastModified, $Created, $DateStamp, $RRule = null) {
-            $content = Array();
-            $content[] = "BEGIN:VEVENT";
-            $content[] = "CREATED:" . gmdate("Ymd\THi00\Z",$Created); //gmdate()
-            $content[] = "LAST-MODIFIED:" . gmdate("Ymd\THi00\Z",$LastModified);
-            $content[] = "DTSTAMP:" . gmdate("Ymd\THi00\Z", $DateStamp);
-            $content[] = "UID:" . $UID;
-            $content[] = "SUMMARY:" . $Summary;
-            //@todo: Overhaul RRule.
-            /*
-            if($RRule != null && $RRule != "") {
-                $content[] = "RRULE:" . $RRule;
-            }
-            */
-            $content[] = "DTSTART;TZID=" . date("e", time()) . ":" . date("Ymd\THi00", $StartDate);  //date_default_timezone_get()
-            $content[] = "DTEND;TZID=" . date("e", time()) . ":" . date("Ymd\THi00", $EndDate); //date()
-
-            if($Location != null && $Location != "") {
-                $content[] = "LOCATION:" . $Location;
-            }
-            if($this->Description != null && $Description != "") {
-                $content[] = "DESCRIPTION:" . $Description;
-            }
-            //Mozilla extension.
-            /*
-            if($this->XMozGeneration == 0) {
-
-            }
-            else {
-                 $this->XMozGeneration += 1;
-                $content[] = "X-MOZ-GENERATION:" . $this->XMozGeneration;
-            }
-            */
-            //X-MOZ-GENERATION:1 // Probably want to work this in here.
-            $content[] = "END:VEVENT";
-            return $content;
-        }
-
-
-    }
-}
-
-namespace HTTP {
-
-    // Simple class to issue a HTTP redirect (to get around some problems). Should be the first thing on the page.
-    class HTTPRedirector {
-        public static function Redirect($URL) {
-            header("Location : " . $URL);
-        }
-    }
-
-    // HTTPRequests -> PHP seems to be lacking a lot of the WebDav / CalDav extensions. I'm abstracting these from the V1 versions, so future edits (ostensibly by other programmers) will be easier.
-    class HTTPRequests {
-        const ProxyEnabled = true;
-        const ProxyServer = "127.0.0.1";
-        const ProxyPort = 8888;
-
-        const UserAgent = "Calico (v.02)";
-
-        private static $StandardHeaders = Array("User-Agent" => "Calico v.02", "Accept" => "text/xml", "Accept-Language" => "en-us,en;q=0.5", "Accept-Encoding" => "gzip,deflate", "Accept-Charset" => "utf-8,*;q=0.1",
-            "Keep-Alive" => "300", "Connection" => "keep-alive", "Pragma" => "no-cache", "Cache-Control" => "no-cache");
-
-        public static function StandardHeaders() {
-            return clone $this->StandardHeaders;
-        }
-
-
-        private static function ContentLength($Content) {
-            return strlen(strstr($Content, "\r\n\r\n")) - 4;
-        }
-
-        private static function Base64UsernamePassword($Username, $Password) {
-            return base64_encode($Username . ":" . $Password);
-
-        }
-
-        private static function Send($URL, $Data) {
-            $server = parse_url($URL, PHP_URL_HOST);
-            $port = parse_url($URL, PHP_URL_PORT);
-
-            // If the parsing the port information fails, we will assume it's on a default port.
-            // As such, we'll set the port in the switch below.
-            if($port == null) {
-                switch(parse_url($URL, PHP_URL_SCHEME)) {
-                    case "HTTP":
-                        $port = 80;
-                        break;
-                    case "HTTPS":
-                        $port = 443;
-                        break;
-
-                }
-            }
-
-            // Check if we are using a proxy (debug configuration typically).
-            if(ProxyEnabled) {
-                $server = ProxyServer;
-                $port = ProxyPort;
-            }
-
-            // Open a connection to the server.
-            $connection = fsockopen($server, $port, $errno, $errstr);
-            if (!$connection) {
-                die($errstr($errno));
-            }
-
-            fwrite($connection, $Data);
-
-            $response = "";
-            while (!feof($connection)) {
-                $response .= fgets($connection);
-            }
-            fclose($connection);
-
-            return $response;
-        }
-
-        // parse_url for here.
-        // rawurlencode / rawlurldecode for later.
-        public static function Put($URL, $Headers, $Content) {
-            //@todo: Finish deciding what will go in a general Put Request, and what will need to go in a Header Array.
-            $request = "";
-            $request .= "PUT " . $URL . " HTTP/1.1" . "\r\n";
-            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
-
-            $content = "";
-            foreach($Content as $data) {
-                $content .= $data . "\r\n";
-            }
-
-            $contentlength = $this->ContentLength($content);
-            if($contentlength > 0) {
-                $Headers["Content-Length"] = $contentlength;
-            }
-
-            foreach($Headers as $key => $value) {
-                $request .= $key . ": " . $value . "\r\n";
-            }
-
-            $request .= $content; //May need a double /r/n here.
-
-            return $this->Send($request);
-
-        }
-
-        public static function Report($URL, $Headers, $Content) {
-            $request = "";
-            $request .= "REPORT " . $URL . " HTTP/1.1" . "\r\n";
-            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
-
-            $content = "";
-            foreach($Content as $data) {
-                $content .= $data . "\r\n";
-            }
-
-
-            $contentlength = $this->ContentLength($content);
-            if($contentlength > 0) {
-                $Headers["Content-Length"] = $contentlength;
-            }
-
-            foreach($Headers as $key => $value) {
-                $request .= $key . ": " . $value . "\r\n";
-            }
-
-            $request .= $content; //May need a double /r/n here.
-
-            return $this->Send($request);
-        }
-
-        //@todo: Fully compartmentalize these functions.
-        public static function Propfind($URL, $Headers, $Content) {
-            $request = "";
-            $request .= "PROPFIND " . $URL . " HTTP/1.1" . "\r\n";
-            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
-
-            $content = "";
-            foreach($Content as $data) {
-                $content .= $data . "\r\n";
-            }
-
-
-            $contentlength = $this->ContentLength($content);
-            if($contentlength > 0) {
-                $Headers["Content-Length"] = $contentlength;
-            }
-
-            foreach($Headers as $key => $value) {
-                $request .= $key . ": " . $value . "\r\n";
-            }
-
-            $request .= $content; //May need a double /r/n here.
-
-            return $this->Send($request);
-        }
-
-
-        public static function Delete($URL, $Headers) {
-
-            $request = "";
-            $request .= "DELETE " . $URL . " HTTP/1.1" . "\r\n";
-            $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
-
-            foreach($Headers as $key => $value) {
-                $request .= $key . ": " . $value . "\r\n";
-            }
-
-            return $this->Send($request);
-        }
-
-        public static function Options($URL, $Headers, $Content) {
-            $request = "";
-            $request .= "OPTIONS " . $URL . " HTTP/1.1" . "\r\n";
-            $request .= "Host: " . parse_url($URL, PHP_URL_HOST)  . "\r\n";
-
-            $content = "";
-            foreach($Content as $data) {
-                $content .= $data . "\r\n";
-            }
-
-
-            $contentlength = $this->ContentLength($content);
-            if($contentlength > 0) {
-                $Headers["Content-Length"] = $contentlength;
-            }
-
-            foreach($Headers as $key => $value) {
-                $request .= $key . ": " . $value . "\r\n";
-            }
-
-            $request .= $content; //May need a double /r/n here.
-
-            return Send($request);
-        }
-    }
-}
-
-
-namespace SQL {
-
-
-    // SQL -> a basic data access layer for SQL servers. MySQL doesn't seem to differentiate between data and non-data queries, but other databases do.
-    class SQL {
-
-        // Keeping these as constants for now. Might be a good idea to pull them out into an XML file at some point.
-        const Server = "localhost";
-        const Username = "root";
-        const Password = "mysql";
-        const Database = "calico";
-
-        // @todo: Perhaps better error handling here?
-        public static function DataQuery($Query) {
-            $connection = mysql_connect(Server, Username, Password);
-
-            if (!$connection)
-            {
-                // error_log() here. Quiet logging of errors.
-                die('Could not connect: ' . mysql_error());
-            }
-
-            mysql_select_db(Database, $connection);
-            $data = mysql_query($Query);
-
-            return $data;
-        }
-
-
-        public static function NonDataQuery($Query) {
-            $connection = mysql_connect(Server, Username, Password);
-
-            if (!$connection)
-            {
-                die("Could not connect: " . mysql_error());
-            }
-
-            mysql_select_db(Database, $connection);
-            mysql_query($Query);
-
-        }
-
-    }
-
-
-}
 
 
 ?>

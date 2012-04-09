@@ -1,18 +1,24 @@
 <?php
 
-require_once("calico_classes_v2.php");
+include_once("calico_classes_v2.php");
 
 if(!isset($_SESSION["USER"])) {
-    HTTP\HTTPRedirector("calico_login.php");
+    \HTTP\HTTPRedirector::Redirect("calico_login.php");
 }
 
-$compositecalendar = new \GUI\CompositeCalendar($_SESSION["USER"]);
+$compositecalendar = new \GUI\CompositeCalendar(unserialize($_SESSION["USER"]));
 $compositecalendar->Postback();
 $compositecalendar->Refresh();
-$compositecalendar->Draw();
 
 
-
+echo "<HTML>
+<HEAD>
+<TITLE>Calico: Composite Calendar</TITLE>
+</HEAD>
+<BODY>";
+echo $compositecalendar->Draw();
+echo "</BODY>
+</HTML>";
 /*
 foreach(array_keys($_REQUEST) as $str) {
    if(strpos($str, "ENT:") > 0) {

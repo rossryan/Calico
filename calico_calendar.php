@@ -1,15 +1,22 @@
 <?php
 
-require_once("calico_classes_v2.php");
+include_once("calico_classes_v2.php");
 
 if(!isset($_SESSION["USER"])) {
-    HTTP\HTTPRedirector("calico_login.php");
+    \HTTP\HTTPRedirector::Redirect("calico_login.php");
 }
 
-$calendarmanager = new \GUI\CalendarManager($_SESSION["USER"]);
+$calendarmanager = new \GUI\CalendarManager(unserialize($_SESSION["USER"]));
 $calendarmanager->Postback();
 $calendarmanager->Refresh();
-$calendarmanager->Draw();
+//$calendarmanager->Draw();
+
+echo "<HTML>
+<HEAD>
+<TITLE>Calico: Calendar Manager</TITLE>
+</HEAD>
+<BODY>" . $calendarmanager->Draw() . "</BODY>
+</HTML>";
 
 /*
 
