@@ -7,7 +7,14 @@ if(!isset($_SESSION["USER"])) {
     HTTP\HTTPRedirector("calico_login.php");
 }
 
-$eventeditor = new \GUI\EventEditor($_SESSION["EVENT"]);
+$eventeditor = null;
+if(isset($_SESSION["EVENT"])) {
+    $eventeditor = new \GUI\EventEditor($_SESSION["USER"], $_SESSION["EVENT"]);
+}
+else {
+    $eventeditor = new \GUI\EventEditor($_SESSION["USER"]);
+}
+
 $eventeditor->Postback();
 $eventeditor->Refresh();
 $eventeditor->Draw();

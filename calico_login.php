@@ -15,7 +15,9 @@ $login->Postback(); // Call object, and have it check if anything has changed (P
 $login->Refresh(); // The MS equivalent of DataBind(), also known as "I have set all the flags I want, we are good to go, get the data, and prepare to write the HTML"
 
 echo "<HTML>
-<HEAD></HEAD>
+<HEAD>
+<TITLE>Calico:Login</TITLE>
+</HEAD>
 <BODY>" . $login->Draw() . "</BODY>
 </HTML>";
 
