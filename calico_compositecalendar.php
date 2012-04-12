@@ -14,6 +14,8 @@ $compositecalendar->Refresh();
 echo "<HTML>
 <HEAD>
 <TITLE>Calico: Composite Calendar</TITLE>
+<link rel=\"stylesheet\" type=\"text/css\" href=\"calico.css\">
+<link rel=\"SHORTCUT ICON\" href=\"favicon.ico\">
 </HEAD>
 <BODY>";
 echo $compositecalendar->Draw();

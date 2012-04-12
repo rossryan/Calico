@@ -25,286 +25,11 @@
  *     If / when you get tired of the same, take a look at XDebug (it's free). I think it works with even Notepad++ (http://amiworks.co.in/talk/debugging-php-using-xdebug-and-notepad-part-i/) & VIM.
  */
 
-    //@todo: Figure out how to get comments to show up in PhpStorm's Intellisense.
-    //TSBuilder -> class for building a Timestamp. Debating whether I need this one.
-/*
-namespace Time {
 
-    class Time {
-
-        private $timestamp = 0;
-
-
-        // Create a new timestamp in a sane way.
-        public function __construct($timestamp) {
-            $this->timestamp = $timestamp;
-        }
-
-        public function GetTimestamp() {
-            return $this->timestamp;
-
-        }
-
-        public function Years($Years = null) {
-            if($Years == null) {
-                return date("Y", $this->timestamp);
-            }
-            else {
-                if($Years > 0) {
-                    $this->timestamp = strtotime(date("Y-m-d H:i:s", strtotime($this->timestamp)) . " +" . 12 * $Years ." month");
-
-                }
-                else {
-                    $this->timestamp = strtotime(date("Y-m-d H:i:s", strtotime($this->timestamp)) . " -" . 12 * $Years ." month");
-                }
-
-            }
-        }
-
-        public function Months($Months = null) {
-            if($Months == null) {
-                return date("m", $this->timestamp);
-            }
-            else {
-                if($Months > 0) {
-                    $this->timestamp = strtotime(date("Y-m-d H:i:s", strtotime($this->timestamp)) . " +" . $Months ." month");
-
-                }
-                else {
-                    $this->timestamp = strtotime(date("Y-m-d H:i:s", strtotime($this->timestamp)) . " -" . $Months ." month");
-                }
-            }
-        }
-
-
-
-        public function Weeks($Weeks = null) {
-            if($Weeks == null) {
-                return date("h", $this->timestamp);
-            }
-            else {
-                $this->timestamp += 7 * 24 * 60 * 60 * $Weeks;
-            }
-        }
-
-        public function Days($Days = null) {
-            if($Days == null) {
-                return date("d", $this->timestamp);
-            }
-            else {
-                $this->timestamp += 24 * 60 * 60 * $Days;
-            }
-        }
-
-        public function Hours($Hours = null) {
-            if($Hours == null) {
-                return date("H", $this->timestamp);
-            }
-            else {
-                $this->timestamp += 60 * 60 * $Hours;
-            }
-        }
-
-        public function Minutes($Minutes = null) {
-            if($Minutes == null) {
-                return date("i", $this->timestamp);
-            }
-            else {
-                $this->timestamp += 60 * $Minutes;
-            }
-        }
-
-        public function Seconds($Seconds = null) {
-            if($Seconds == null) {
-                return date("s", $this->timestamp);
-            }
-            else {
-                $this->timestamp += $Seconds;
-            }
-        }
-
-
-
-
-    }
-
-    // TSInfoExtractor -> going to play around with this one. I'm splitting the former Helper class into two, so it better differentiates various functions.
-    class TimeInfo {
-
-        const NumberOfDaysInMonth = "NumberOfDaysInMonth";
-        const DayOfTheWeek = "DayOfTheWeek";
-        const Year = "Year";
-        const Month = "Month";
-        const Week = "Week";
-        const Day = "Day";
-        const Hour = "Hour";
-        const Minute = "Minute";
-        const Second = "Second";
-        const TimezoneOffset = "TimezoneOffset";
-
-        const String = "String";
-        const Integer = "Integer";
-        //const Timestamp = "Timestamp";
-
-        // Extract information from a timestamp. My sad attempt to make Time information slightly more friendly.
-        // One rule though: if it doesn't have a nice String representation, it returns an Integer. Do not, I repeat, do not rely on that behavior for future releases.
-        // Or you will end up in a hell of your own making.
-        public static function Extract($timestamp, $arg, $format) {
-            //@todo: Finish this. Need to verify that extraction will work properly, and that the design is simplistic.
-            switch($arg) {
-                case NumberOfDaysInMonth:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "t");  // Number of days in the given month	(28 through 31)
-                            break;
-                        case Integer:
-                            return date($timestamp, "t");  // Number of days in the given month	(28 through 31)
-                            break;
-                    }
-                    break;
-                case DayOfTheWeek:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "l"); // A full textual representation of the day of the week (Sunday through Saturday)
-                            break;
-                        case Integer:
-                            return date($timestamp, "N"); // ISO-8601 numeric representation of the day of the week (added in PHP 5.1.0) (1 (for Monday) through 7 (for Sunday))
-                            break;
-                    }
-                    break;
-                case Year:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "Y"); // A full numeric representation of a year, 4 digits (Examples: 1999 or 2003)
-                            break;
-                        case Integer:
-                            return date($timestamp, "Y"); // A full numeric representation of a year, 4 digits (Examples: 1999 or 2003)
-                            break;
-                    }
-
-                    break;
-                case Month:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "F"); // A full textual representation of a month (such as January or March	January through December)
-                            break;
-                        case Integer:
-                            return date($timestamp, "n"); // Numeric representation of a month, without leading zeros (1 through 12)
-                            break;
-                    }
-                    break;
-                case Week:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "W"); // ISO-8601 week number of year, weeks starting on Monday (added in PHP 4.1.0) (Example: 42 (the 42nd week in the year))
-                            break;
-                        case Integer:
-                            return date($timestamp, "W"); // ISO-8601 week number of year, weeks starting on Monday (added in PHP 4.1.0) (Example: 42 (the 42nd week in the year))
-                            break;
-                    }
-                    break;
-
-                case DayOfTheMonth:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "js"); // English ordinal suffix for the day of the month, 2 characters	st, nd, rd or th. (Works well with j)
-                            break;
-                        case Integer:
-                            return date($timestamp, "j"); // Day of the month without leading zeros (1 to 31)
-                            break;
-                    }
-
-                    break;
-                case Hour:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "g"); // 12-hour format of an hour without leading zeros (1 through 12)
-                            break;
-                        case Integer:
-                            return date($timestamp, "g"); // 12-hour format of an hour without leading zeros (1 through 12)
-                            break;
-                    }
-
-                    break;
-                case Minute:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "i"); // Minutes with leading zeros	(00 to 59)
-                            break;
-                        case Integer:
-                            return date($timestamp, "i"); // Minutes with leading zeros	(00 to 59)
-                            break;
-                    }
-                    break;
-                case Second:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "s"); // Seconds, with leading zeros (00 through 59)
-                            break;
-                        case Integer:
-                            return date($timestamp, "S"); // Seconds, with leading zeros (00 through 59)
-                            break;
-                    }
-                    break;
-                case TimezoneOffset:
-                    switch($format) {
-                        case String:
-                            return date($timestamp, "Z"); // Timezone offset in seconds. The offset for timezones west of UTC is always negative, and for those east of UTC is always positive.
-                            break;
-                        case Integer:
-                            return date($timestamp, "Z"); // Timezone offset in seconds. The offset for timezones west of UTC is always negative, and for those east of UTC is always positive.
-                            break;
-                    }
-                    break;
-
-            }
-            return;
-        }
-
-
-
-
-    }
-}
-*/
 
 namespace Extract {
     class Extract {
-        /*
-    BEGIN:VCALENDAR
-    PRODID:-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN
-    VERSION:2.0
-    BEGIN:VTIMEZONE
-    TZID:America/New_York
-    X-LIC-LOCATION:America/New_York
-    BEGIN:DAYLIGHT
-    TZOFFSETFROM:-0500
-    TZOFFSETTO:-0400
-    TZNAME:EDT
-    DTSTART:19700308T020000
-    RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3
-    END:DAYLIGHT
-    BEGIN:STANDARD
-    TZOFFSETFROM:-0400
-    TZOFFSETTO:-0500
-    TZNAME:EST
-    DTSTART:19701101T020000
-    RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11
-    END:STANDARD
-    END:VTIMEZONE
-    BEGIN:VEVENT
-    CREATED:20111219T194407Z
-    LAST-MODIFIED:20111219T194431Z
-    DTSTAMP:20111219T194431Z
-    UID:c9bfc6b0-064e-4316-83fe-753db34e67ee
-    SUMMARY:New Test
-    DTSTART;TZID=America/New_York:20111219T150000
-    DTEND;TZID=America/New_York:20111219T160000
-    LOCATION:Philadelphia
-    DESCRIPTION:Propfind test.
-    END:VEVENT
-    END:VCALENDAR
-        */
+
 
         // This function may be unnecessary, but is included for completeness sake.
         public static function GetVCalendar($String) {
@@ -364,11 +89,13 @@ namespace Extract {
 
         }
 
-        public static function GetStandard($String) {
+
+
+        public static function GetXMLETAG($String) {
             $re1='.*?';	# Non-greedy match on filler
-            $re2='(BEGIN:STANDARD)';
-            $re3='(.*?)';
-            $re4='(END:STANDARD)';	# Non-greedy match on filler
+            $re2='()';
+            $re3='(".*?")';
+            $re4='()';	# Non-greedy match on filler
             //$re5='( )';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4."/is", $String, $matches))
@@ -406,7 +133,7 @@ namespace Extract {
             $re2='(PRODID)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -424,7 +151,7 @@ namespace Extract {
             $re2='(VERSION)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -443,7 +170,7 @@ namespace Extract {
             $re2='(TZID)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -460,7 +187,7 @@ namespace Extract {
             $re2='(X-LIC-LOCATION)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -478,7 +205,7 @@ namespace Extract {
             $re2='(TZOFFSETFROM)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -496,7 +223,7 @@ namespace Extract {
             $re2='(TZOFFSETTO)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -514,7 +241,7 @@ namespace Extract {
             $re2='(TZNAME)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -532,7 +259,7 @@ namespace Extract {
             $re2='(RRULE)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -553,7 +280,7 @@ namespace Extract {
             $re5='(T)';	# Any Single Character 2
             $re6='(\\d+)';	# Integer Number 1
             $re7='(Z)';	# Any Single Character 3
-            $re8='( )';	# Any Single Character 4
+            $re8='(\n)';	# Any Single Character 4
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5.$re6.$re7.$re8."/is", $String, $matches))
             {
@@ -574,7 +301,7 @@ namespace Extract {
             $re2='(LAST-MODIFIED)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -594,7 +321,7 @@ namespace Extract {
             $re2='(DTSTAMP)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -612,7 +339,7 @@ namespace Extract {
             $re2='(UID)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -628,9 +355,9 @@ namespace Extract {
         public static function GetDTStart($String) {
             $re1='.*?';	# Non-greedy match on filler
             $re2='(DTSTART)';	# Word 1
-            $re3='(:)';	# Any Single Character 1
+            $re3='(;)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -648,7 +375,7 @@ namespace Extract {
             $re2='(SUMMARY)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -664,9 +391,9 @@ namespace Extract {
         public static function GetDTEnd($String) {
             $re1='.*?';	# Non-greedy match on filler
             $re2='(DTEND)';	# Word 1
-            $re3='(:)';	# Any Single Character 1
+            $re3='(;)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -684,7 +411,7 @@ namespace Extract {
             $re2='(LOCATION)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -703,7 +430,7 @@ namespace Extract {
             $re2='(DESCRIPTION)';	# Word 1
             $re3='(:)';	# Any Single Character 1
             $re4='(.*?)';	# Non-greedy match on filler
-            $re5='( )';	# Any Single Character 2
+            $re5='(\n)';	# Any Single Character 2
 
             if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
@@ -716,8 +443,8 @@ namespace Extract {
 
         }
 
-        //@todo: GetETag -> Need to add this function, so I can grab from the HTTP responses.
-
+        //@todo: Check this function later. May be missing something.
+    /*
         public static function GetETag($String) {
             $re1='(ETag)';	# Variable Name 1
             $re2='(: )';	# Any Single Character 1
@@ -733,35 +460,79 @@ namespace Extract {
             }
 
         }
+    */
+
+        public static function GetETag($String) {
+
+            $re1='.*?';	# Non-greedy match on filler
+            $re2='(ETag)';	# Word 1
+            $re3='(:)';	# Any Single Character 1
+            $re4='(.*?)';	# Non-greedy match on filler
+            $re5='(\n)';	# Any Single Character 2
+
+            if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
+            {
+
+                $word1=$matches[1][0];
+                $c1=$matches[2][0];
+                $word2=$matches[3][0];
+                return $word2;
+            }
+
+        }
+
+        public static function GetContentLength($String) {
+
+            $re1='.*?';	# Non-greedy match on filler
+            $re2='(Content-Length)';	# Word 1
+            $re3='(:)';	# Any Single Character 1
+            $re4='(.*?)';	# Non-greedy match on filler
+            $re5='(\n)';	# Any Single Character 2
+
+            if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
+            {
+
+                $word1=$matches[1][0];
+                $c1=$matches[2][0];
+                $word2=$matches[3][0];
+                return $word2;
+            }
+
+        }
 
         public static function GetDateStamp($String) {
-            $re1='(DSTAMP)';	# Variable Name 1
-            $re2='(:)';	# Any Single Character 1
-            $re3='.*?';	# Non-greedy match on filler
-            $re4='(".*?")';	# Double Quote String 1
 
-            if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4."/is", $String, $matches))
+            $re1='.*?';	# Non-greedy match on filler
+            $re2='(DTSTAMP)';	# Word 1
+            $re3='(:)';	# Any Single Character 1
+            $re4='(.*?)';	# Non-greedy match on filler
+            $re5='(\n)';	# Any Single Character 2
+
+            if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
-                $var1=$matches[1][0];
+
+                $word1=$matches[1][0];
                 $c1=$matches[2][0];
-                $string1=$matches[3][0];
-                return $string1;
+                $word2=$matches[3][0];
+                return $word2;
             }
 
         }
 
         public static function GetXMozGeneration($String) {
-            $re1='(X-MOZ-GENERATION)';	# Variable Name 1
-            $re2='(:)';	# Any Single Character 1
-            $re3='.*?';	# Non-greedy match on filler
-            $re4='(".*?")';	# Double Quote String 1
+            $re1='.*?';	# Non-greedy match on filler
+            $re2='(X-MOZ-GENERATION)';	# Word 1
+            $re3='(:)';	# Any Single Character 1
+            $re4='(.*?)';	# Non-greedy match on filler
+            $re5='(\n)';	# Any Single Character 2
 
-            if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4."/is", $String, $matches))
+            if ($c=preg_match_all ("/".$re1.$re2.$re3.$re4.$re5."/is", $String, $matches))
             {
-                $var1=$matches[1][0];
+
+                $word1=$matches[1][0];
                 $c1=$matches[2][0];
-                $string1=$matches[3][0];
-                return $string1;
+                $word2=$matches[3][0];
+                return $word2;
             }
 
         }
@@ -789,22 +560,49 @@ namespace HTTP {
 
         const UserAgent = "Calico (v.02)";
 
-        private static $StandardHeaders = Array("User-Agent" => "Calico v.02", "Accept" => "text/xml", "Accept-Language" => "en-us,en;q=0.5", "Accept-Encoding" => "gzip,deflate", "Accept-Charset" => "utf-8,*;q=0.1",
-            "Keep-Alive" => "300", "Connection" => "keep-alive", "Pragma" => "no-cache", "Cache-Control" => "no-cache");
+        //private static $start = NULL;
+        //private static $timeout = 5;
 
-        public static function StandardHeaders() {
-            return clone $this->StandardHeaders;
+        //private static $StandardHeaders =
+
+        public static function GetStandardHeaders() {
+            return Array("User-Agent" => "Calico v.02", "Accept" => "text/xml", "Accept-Language" => "en-us,en;q=0.5", "Accept-Encoding" => "gzip,deflate", "Accept-Charset" => "utf-8,*;q=0.1",
+                "Keep-Alive" => "300", "Connection" => "keep-alive", "Pragma" => "no-cache", "Cache-Control" => "no-cache");
         }
 
 
         private static function ContentLength($Content) {
-            return strlen(strstr($Content, "\r\n\r\n")) - 4;
+            return strlen(strstr($Content, "\r\n")) - 2;
         }
 
         private static function Base64UsernamePassword($Username, $Password) {
             return base64_encode($Username . ":" . $Password);
 
         }
+
+        public static function FixNewlines($String) {
+
+            $String = str_replace("\n ", "", $String);
+
+            return $String;
+        }
+
+        public static function FixEverythingElse($String) {
+
+            //$String = str_replace("\r\n ", "", $String);
+            $String = str_replace("\\n", "\n", $String);
+            $String = str_replace("\\N", "\n", $String);
+            //$String = str_replace("\n", "", $String);
+            //$String = str_replace("\r", "\n", $String);
+
+            $String = str_replace("\,", ",", $String);
+            $String = str_replace("\\\"", "\"", $String);
+            $String = str_replace("\;", ";", $String);
+            $String = str_replace("\\\\", "\\", $String);
+            return $String;
+        }
+
+
 
         private static function Send($URL, $Data) {
             $server = parse_url($URL, PHP_URL_HOST);
@@ -825,42 +623,93 @@ namespace HTTP {
             }
 
             // Check if we are using a proxy (debug configuration typically).
-            if(ProxyEnabled) {
-                $server = ProxyServer;
-                $port = ProxyPort;
+            if(\HTTP\HTTPRequests::ProxyEnabled) {
+                $server = \HTTP\HTTPRequests::ProxyServer;
+                $port = \HTTP\HTTPRequests::ProxyPort;
             }
+
+
 
             // Open a connection to the server.
             $connection = fsockopen($server, $port, $errno, $errstr);
             if (!$connection) {
-                die($errstr($errno));
+                die("OMG Ponies!");
             }
+            //echo "===========================================================<BR>";
+            //echo "Connection Open<BR>";
+            //echo "The Time is " . date("H:i:su", time()) . "<BR>";
+            //echo "Sending Request<BR>";
 
             fwrite($connection, $Data);
 
-            $response = "";
-            while (!feof($connection)) {
+            //echo "Request Sent.";
+            //echo "The Time is " . date("H:i:su", time()) . "<BR>";
+            $responseheader = "";
+            $responsebody = "";
+
+
+            /*
+            \HTTP\HTTPRequests::$start = NULL;
+            \HTTP\HTTPRequests::$timeout = 10;
+
+            // @todo: Rewrite this. Should keep checking for '/r/n/r/n', then check for a content length header. If found, keep grabbing bytes, then close. If not, then close immediately.
+            while(!\HTTP\HTTPRequests::safe_feof($connection, \HTTP\HTTPRequests::$start) && (microtime(true) - \HTTP\HTTPRequests::$start) < \HTTP\HTTPRequests::$timeout)
+            {
                 $response .= fgets($connection);
             }
+            */
+            //echo "Getting Response<BR>";
+            //echo "The Time is " . date("H:i:su", time()) . "<BR>";
+            while(!feof($connection) && !(strlen(strstr($responseheader,"\r\n\r\n"))>0)) {
+                $responseheader .= fgets($connection);
+            }
+
+            //echo "The Header is fully received at " . date("H:i:su", time()) . "<BR>";
+            //echo "Header (raw):" . "<BR>";
+            //echo "/////////////////////////////////////////////<BR>";
+            //echo $responseheader . "<BR>";
+            //echo "/////////////////////////////////////////////<BR>";
+
+            if((strlen(strstr($responseheader,"Content-Length:"))>0)) {
+                $contentlength = ((int)(\Extract\Extract::GetContentLength($responseheader)));
+                //for($i = 0; $i < $contentlength; $i++) {
+                    //$responsebody .= fgets($connection, $contentlength);
+                $responsebody .= stream_get_line($connection, $contentlength);
+                //}
+                //echo "The Body is fully received at " . date("H:i:su", time()) . "<BR>";
+                //echo "Body (raw):" . "<BR>";
+                //echo "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}<BR>";
+                //echo $responsebody . "<BR>";
+                //echo "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}<BR>";
+                //echo "<B>!Content length is " . strlen($responsebody) . ". It should be " . $contentlength . "!</B><BR>";
+            }
+
+            //echo "Response Received.<BR>";
+            //echo "The Time is " . date("H:i:su", time()) . "<BR>";
             fclose($connection);
 
-            return $response;
+            //echo "Connection Closed.<BR>";
+            //echo "The Time is " . date("H:i:su", time()) . "<BR>";
+            //echo "Exiting Send() method.<BR>";
+            //echo "===========================================================<BR>";
+            //echo "<BR>";
+
+            return $responseheader . $responsebody;
         }
 
         // parse_url for here.
         // rawurlencode / rawlurldecode for later.
         public static function Put($URL, $Headers, $Content) {
-            //@todo: Finish deciding what will go in a general Put Request, and what will need to go in a Header Array.
             $request = "";
             $request .= "PUT " . $URL . " HTTP/1.1" . "\r\n";
             $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
 
-            $content = "\r\n";
+            $content = "";
             foreach($Content as $data) {
-                $content .= $data . "\r\n";
+                $content .= "\r\n" . $data;
             }
 
-            $contentlength = $this->ContentLength($content);
+            $contentlength = \HTTP\HTTPRequests::ContentLength($content);
             if($contentlength > 0) {
                 $Headers["Content-Length"] = $contentlength;
             }
@@ -871,7 +720,7 @@ namespace HTTP {
 
             $request .= $content; //May need a double /r/n here.
 
-            return $this->Send($request);
+            return \HTTP\HTTPRequests::Send($URL, $request);
 
         }
 
@@ -880,13 +729,13 @@ namespace HTTP {
             $request .= "REPORT " . $URL . " HTTP/1.1" . "\r\n";
             $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
 
-            $content = "\r\n";
+            $content = "";
             foreach($Content as $data) {
-                $content .= $data . "\r\n";
+                $content .= "\r\n" . $data;
             }
 
 
-            $contentlength = $this->ContentLength($content);
+            $contentlength = \HTTP\HTTPRequests::ContentLength($content);
             if($contentlength > 0) {
                 $Headers["Content-Length"] = $contentlength;
             }
@@ -897,7 +746,7 @@ namespace HTTP {
 
             $request .= $content; //May need a double /r/n here.
 
-            return $this->Send($request);
+            return \HTTP\HTTPRequests::Send($URL, $request);
         }
 
         //@todo: Fully compartmentalize these functions.
@@ -906,13 +755,13 @@ namespace HTTP {
             $request .= "PROPFIND " . $URL . " HTTP/1.1" . "\r\n";
             $request .= "Host: " . parse_url($URL, PHP_URL_HOST) . "\r\n";
 
-            $content = "\r\n";
+            $content = "";
             foreach($Content as $data) {
-                $content .= $data . "\r\n";
+                $content .= "\r\n" . $data;
             }
 
 
-            $contentlength = $this->ContentLength($content);
+            $contentlength = \HTTP\HTTPRequests::ContentLength($content);
             if($contentlength > 0) {
                 $Headers["Content-Length"] = $contentlength;
             }
@@ -923,7 +772,7 @@ namespace HTTP {
 
             $request .= $content; //May need a double /r/n here.
 
-            return $this->Send($request);
+            return \HTTP\HTTPRequests::Send($URL, $request);
         }
 
 
@@ -937,7 +786,9 @@ namespace HTTP {
                 $request .= $key . ": " . $value . "\r\n";
             }
 
-            return $this->Send($request);
+            $request .= "\r\n";
+
+            return \HTTP\HTTPRequests::Send($URL, $request);
         }
 
         public static function Options($URL, $Headers, $Content) {
@@ -945,13 +796,13 @@ namespace HTTP {
             $request .= "OPTIONS " . $URL . " HTTP/1.1" . "\r\n";
             $request .= "Host: " . parse_url($URL, PHP_URL_HOST)  . "\r\n";
 
-            $content = "\r\n";
+            $content = "";
             foreach($Content as $data) {
-                $content .= $data . "\r\n";
+                $content .= "\r\n" . $data;
             }
 
 
-            $contentlength = $this->ContentLength($content);
+            $contentlength = \HTTP\HTTPRequests::ContentLength($content);
             if($contentlength > 0) {
                 $Headers["Content-Length"] = $contentlength;
             }
@@ -962,7 +813,7 @@ namespace HTTP {
 
             $request .= $content; //May need a double /r/n here.
 
-            return Send($request);
+            return \HTTP\HTTPRequests::Send($URL, $request);
         }
     }
 }
@@ -1045,7 +896,7 @@ namespace Data {
 
         public function __construct($CalendarID) {
             $this->SQL_ID = $CalendarID;
-            $this->Refresh();
+            //$this->Refresh();
         }
 
         public function GetSuperFeedList() {
@@ -1058,7 +909,9 @@ namespace Data {
 
             while($row = mysql_fetch_array($data))
             {
-                $this->SuperFeedList[] = new SuperFeed($row['SuperFeedID']);
+                $newsuperfeed = new SuperFeed($row['SuperFeedID']);
+                $newsuperfeed->Refresh();
+                $this->SuperFeedList[] = $newsuperfeed;
             }
 
         }
@@ -1082,29 +935,31 @@ namespace Data {
         // @todo: Rewrite this more intelligently.
         public function __construct($SuperFeedID) {
             $this->SQL_ID = $SuperFeedID;
-            $this->Refresh();
-        }
 
-        public function GetEventList() {
-            return $this->EventList;
-        }
-
-        public function Refresh() {
-            $query = "SELECT `FeedURL`, `FeedUsername`, `FeedPassword` FROM `calico`.`superfeeds` WHERE `SuperFeedID` = '" . $this->SuperFeedID . "';";
+            $query = "SELECT `FeedURL`, `FeedUsername`, `FeedPassword` FROM `calico`.`superfeeds` WHERE `SuperFeedID` = " . $this->SQL_ID . ";";
             $data = \SQL\SQL::DataQuery($query);
 
             $row = mysql_fetch_array($data);
             $this->FeedURL = base64_decode($row['FeedURL']);
             $this->FeedUsername = base64_decode($row['FeedUsername']);
             $this->FeedPassword = base64_decode($row['FeedPassword']);
+            //$this->Refresh();
+        }
+
+        public function GetEvents() {
+            return $this->EventList;
+        }
+
+        public function Refresh() {
+            $this->Propfind();
         }
 
         private function Propfind() {
             $headers = Array();
-            $headers = $this->StandardHeaders();
+            $headers = \HTTP\HTTPRequests::GetStandardHeaders();
             $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Depth"] = "0";
-            $headers["Authorization"] = base64_encode($this->FeedUsername) . ":" . base64_encode($this->FeedPassword);
+            $headers["Depth"] = "1";
+            $headers["Authorization"] = "Basic " . base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
 
             $content = Array();
             $content[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -1116,19 +971,22 @@ namespace Data {
             $content[] = "</D:prop>";
             $content[] = "</D:propfind>";
 
-            $this->ParsePropfind(\HTTP\HTTPRequests::Propfind($this->URL, $headers, $content));
+            $this->ParsePropfind(\HTTP\HTTPRequests::Propfind($this->FeedURL, $headers, $content));
 
         }
 
         private function ParsePropfind($String) {
+            $body = strstr($String, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>");
 
-            $Xml = new SimpleXMLElement($String);
-            $ResponseList = $Xml->multistatus->response->children();
+            $Xml = new \SimpleXMLElement($body);
+            $ResponseList = $Xml->response;
             // Don't need the first one.
             for($i = 1; $i < count($ResponseList); $i++) {
                 $feedurl = parse_url($this->FeedURL, PHP_URL_SCHEME) . "://" . parse_url($this->FeedURL, PHP_URL_HOST) . $ResponseList[$i]->href; //$Xml->xpath("/multistatus/response/href"); // Modify these for iteration.
-                $etag = $ResponseList[$i]->propstat->prop->getetag;//$Xml->xpath("/multistatus/response/propstat/prop/getetag");
-                $this->EventList[] = new Event($feedurl, $this->FeedUsername, $this->FeedPassword, $etag);
+                $etag = \Extract\Extract::GetXMLETAG($ResponseList[$i]->propstat->prop->getetag->asXML());
+
+                //$Xml->xpath("/multistatus/response/propstat/prop/getetag");
+                $this->EventList[] = new Event($feedurl, $this->FeedUsername, $this->FeedPassword, $etag, $this->FeedURL);
             }
         }
 
@@ -1136,6 +994,7 @@ namespace Data {
 
     // Event -> class for storing event information. Due to this redesign, Event will now be handling some of the functions previously found in the Feed class.
     class Event {
+        private $SuperFeedURL = "";
         private $FeedURL = "";
         private $FeedUsername = "";
         private $FeedPassword = "";
@@ -1150,10 +1009,23 @@ namespace Data {
         private $DateStamp = null;
         private $Created = null;
         private $LastModified = null;
+        private $RRule = "";
         private static $BannedUIDs = Array(); // Sanity check, to ensure that we aren't going to use an existing UID.
 
         public static function GetBannedUIDs() {
-            return $this->BannedUIDs;
+            return \Data\Event::$BannedUIDs;
+        }
+
+        public function GetETAG() {
+            return $this->ETAG;
+        }
+
+        public function GetSuperFeedURL() {
+            return $this->SuperFeedURL;
+        }
+
+        public function GetFeedURL() {
+            return $this->FeedURL;
         }
 
         public function GetSummary() {
@@ -1176,15 +1048,33 @@ namespace Data {
             return $this->EndDate;
         }
 
+        public function GetRRule() {
+            return $this->RRule;
+        }
+
         //@todo: Verify that this is the correct, or at least, a very good idea. A default constructor that just takes in the string containing VEVENT information (raw).
-        public function __construct($FeedURL, $FeedUsername, $FeedPassword, $ETAG) {
+        public function __construct($FeedURL, $FeedUsername, $FeedPassword, $ETAG, $SuperFeedURL) {
             //ParseVEvent($String);
             $this->FeedUsername = $FeedUsername;
             $this->FeedPassword = $FeedPassword;
             $this->FeedURL = $FeedURL;
             $this->ETAG = $ETAG;
+            $this->SuperFeedURL = $SuperFeedURL;
             $this->Refresh();
 
+        }
+
+        public static function CreateFromURLs($SuperFeedURL, $FeedURL, $ETAG) {
+            $query = "SELECT `FeedUsername`, `FeedPassword` FROM `calico`.`superfeeds` WHERE `FeedURL` = '" . base64_encode($SuperFeedURL) . "';";
+            $data = \SQL\SQL::DataQuery($query);
+
+            $row = mysql_fetch_array($data);
+            //$this->FeedURL = base64_decode($row['FeedURL']);
+            $feedusername = base64_decode($row['FeedUsername']);
+            $feedpassword = base64_decode($row['FeedPassword']);
+
+            $event = new \Data\Event($FeedURL, $feedusername, $feedpassword, $ETAG, $SuperFeedURL);
+            return $event;
         }
 
         // @todo: Store this here until I know what to do with it.
@@ -1193,7 +1083,7 @@ namespace Data {
             $newUID = "";
             do {
                 $newUID = str_replace(".", "", uniqid("", true));
-                if(in_array($newUID, $this->GetBannedUIDs())) {
+                if(in_array($newUID, \Data\Event::GetBannedUIDs())) {
                     $isnew = false;
                 }
             } while($isnew == false);
@@ -1207,22 +1097,22 @@ namespace Data {
 
         public function Report() {
             $headers = Array();
-            $headers = $this->StandardHeaders();
+            $headers = \HTTP\HTTPRequests::GetStandardHeaders();
             $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
+            $headers["Authorization"] = "Basic " . base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
             $headers["Depth"] = "1";
 
-            $content = "";
-            $content .= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-            $content .= "<calendar-multiget xmlns:D=\"DAV:\" xmlns=\"urn:ietf:params:xml:ns:caldav\">";
-            $content .= "<D:prop>";
-            $content .= "<D:getetag/>";
-            $content .= "<calendar-data/>";
-            $content .= "</D:prop>";
-            $content .= "<D:href>" . parse_url($this->URL, PHP_URL_PATH) . "</D:href>";
-            $content .= "</calendar-multiget>";
+            $content = Array();
+            $content[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+            $content[] = "<calendar-multiget xmlns:D=\"DAV:\" xmlns=\"urn:ietf:params:xml:ns:caldav\">";
+            $content[] = "<D:prop>";
+            $content[] = "<D:getetag/>";
+            $content[] = "<calendar-data/>";
+            $content[] = "</D:prop>";
+            $content[] = "<D:href>" . parse_url($this->FeedURL, PHP_URL_PATH) . "</D:href>";
+            $content[] = "</calendar-multiget>";
 
-            $this->ParseReport(\HTTP\HTTPRequests::Report($this->URL, $headers, $content));
+            $this->ParseReport(\HTTP\HTTPRequests::Report($this->SuperFeedURL, $headers, $content));
 
         }
 
@@ -1233,6 +1123,7 @@ namespace Data {
             $this->Description = $Description;
             $this->StartDate = $StartDate;
             $this->EndDate = $EndDate;
+            $this->RRule = $RRule;
 
             $this->Put();
 
@@ -1241,9 +1132,9 @@ namespace Data {
         private function Put() {
             // @todo: Rewrite the HTTP requests in this object to flow more.
             $headers = Array();
-            $headers = $this->StandardHeaders();
+            $headers = \HTTP\HTTPRequests::GetStandardHeaders();
             $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
+            $headers["Authorization"] = "Basic " . base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
             $headers["If-Match"] = $this->ETAG;
 
             $content = Array();
@@ -1281,7 +1172,7 @@ namespace Data {
             $content[] = "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11";
             $content[] = "END:STANDARD";
             $content[] = "END:VTIMEZONE";
-            array_merge($content, $this->BuildVEvent($this->UID, $this->Summary, $this->StartDate, $this->EndDate, $this->Location, $this->Description, time(), $this->Created, time())); //GenerateUID goes in here.
+            $content = array_merge($content, $this->BuildVEvent($this->UID, $this->Summary, $this->StartDate, $this->EndDate, $this->Location, $this->Description, time(), $this->Created, time(), $this->RRule)); //GenerateUID goes in here.
             $content[] = "END:VCALENDAR";
 
             //array_merge($content, $this->BuildVEvent($uid, $Summary, $StartDate, $EndDate, $Location, $Description, $LastModified, $Created, $DateStamp));
@@ -1289,17 +1180,17 @@ namespace Data {
 
             //$headers["Content-Length"] = $this->ContentLength($content);
 
-            $this->ParsePut(\HTTP\HTTPRequests::Put($this->URL, $headers, $content));
+            $this->ParsePut(\HTTP\HTTPRequests::Put($this->FeedURL, $headers, $content));
 
         }
 
         public function Delete() {
             $headers = Array();
-            $headers = $this->StandardHeaders();
-            $headers["Authorization"] = base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
+            $headers = \HTTP\HTTPRequests::GetStandardHeaders();
+            $headers["Authorization"] = "Basic " . base64_encode($this->FeedUsername . ":" . $this->FeedPassword);
             $headers["If-Match"] = $this->ETAG;
 
-            $this->ParseDelete(\HTTP\HTTPRequests::Delete($this->URL, $headers));
+            $this->ParseDelete(\HTTP\HTTPRequests::Delete($this->FeedURL, $headers));
         }
 
 
@@ -1318,10 +1209,12 @@ namespace Data {
                 return false;
             }
 
-            $Xml = SimpleXMLElement(strstr($String, "\r\n\r\n"));
-            $this->ETAG = $Xml->multistatus->response[0]->propstat->prop->getetag;
-            $vevent = $Xml->multistatus->response[0]->propstat->prop->children("urn:ietf:params:xml:ns:caldav");
-            ParseVEvent($vevent[0]);
+            $body = strstr($String, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>");
+
+            $Xml = new \SimpleXMLElement($body);
+            $this->ETAG = \Extract\Extract::GETXMLETAG($Xml->response[0]->propstat->prop->getetag->asXML());
+            $vevent = $Xml->response[0]->propstat->prop->children("urn:ietf:params:xml:ns:caldav");
+            $this->ParseVEvent($vevent);
 
             return true;
 
@@ -1331,12 +1224,12 @@ namespace Data {
         public static function Create($FeedURL, $FeedUsername, $FeedPassword, $Summary, $StartDate, $EndDate, $Location, $Description, $RRule = null) {
 
             $headers = Array();
-            $headers = $this->StandardHeaders();
+            $headers = \HTTP\HTTPRequests::GetStandardHeaders();
             $headers["Content-Type"] = "text/calendar; charset=utf-8";
-            $headers["Authorization"] = base64_encode($FeedUsername . ":" . $FeedPassword);
+            $headers["Authorization"] = "Basic " . base64_encode($FeedUsername . ":" . $FeedPassword);
             $headers["If-None-Match"] = "*";
 
-            $uid = GetNewUniqueID();
+            $uid = \Data\Event::GetNewUniqueID();
             $content = Array();
             $content[] = "BEGIN:VCALENDAR";
             $content[] = "PRODID:Calico";
@@ -1372,14 +1265,15 @@ namespace Data {
             $content[] = "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11";
             $content[] = "END:STANDARD";
             $content[] = "END:VTIMEZONE";
-            array_merge($content, $this->BuildVEvent($uid, $Summary, $StartDate, $EndDate, $Location, $Description, time(), time(), time())); //GenerateUID goes in here.
+            $content = array_merge($content, \Data\Event::BuildVEvent($uid, $Summary, $StartDate, $EndDate, $Location, $Description, time(), time(), time(), $RRule)); //GenerateUID goes in here.
             $content[] = "END:VCALENDAR";
 
-            $url = $FeedURL . $uid . ".ics"; //@todo: Construct URL (UID) to post to here.
+            $url = $FeedURL . "/" . $uid . ".ics"; //@todo: Construct URL (UID) to post to here.
             $response = \HTTP\HTTPRequests::Put($url, $headers, $content);
 
             if (strlen(strstr($response,"HTTP/1.1 201 Created"))>0) {
-                $Event = new Event($url);
+                $etag = \Extract\Extract::GetETag($response);
+                $Event = new Event($url, $FeedUsername, $FeedPassword, $etag, $FeedURL);
                 return $Event;
             }
 
@@ -1396,35 +1290,36 @@ namespace Data {
 
         private function ParseVEvent($String) {
 
+            $String = \HTTP\HTTPRequests::FixNewlines($String);
             $daylight = \Extract\Extract::GetDaylight($String);
             $vevent = \Extract\Extract::GetVEvent($String);
 
-            $this->Summary = \Extract\Extract::GetSummary($vevent);
+            //$summary = \Extract\Extract::GetSummary($vevent);
+            $this->Summary = \HTTP\HTTPRequests::FixEverythingElse(\Extract\Extract::GetSummary($vevent));
 
-
-            $start = explode(":", \Extract\Extract::GetStartDate($vevent));
-            $startdatetime = new DateTime($start[1]);
-            $startdatetimezone = timezone_open($start[0]);
+            $start = explode(":", \Extract\Extract::GetDTStart($vevent));
+            $startdatetime = new \DateTime($start[1]);
+            $startdatetimezone = timezone_open(str_replace("TZID=", "", $start[0]));
             $startdatetime->setTimezone($startdatetimezone);
             $this->StartDate =  $startdatetime->getTimestamp();
 
-            $end = explode(":", \Extract\Extract::GetEndDate($vevent));
-            $enddatetime = new DateTime($end[1]);
-            $enddatetimezone = timezone_open($end[0]);
+            $end = explode(":", \Extract\Extract::GetDTEnd($vevent));
+            $enddatetime = new \DateTime($end[1]);
+            $enddatetimezone = timezone_open(str_replace("TZID=", "", $end[0]));
             $enddatetime->setTimezone($enddatetimezone);
             $this->EndDate = $enddatetime->getTimestamp();
 
-            $this->Location = \Extract\Extract::GetLocation($vevent);
-            $this->Description = \Extract\Extract::GetDescription($vevent);
-            $this->Created = \Extract\Extract::GetCreated($vevent);
-            $this->LastModified = \Extract\Extract::GetLastModified($vevent);
-            $this->DateStamp =  \Extract\Extract::GetDateStamp($vevent);
+            $this->Location = \HTTP\HTTPRequests::FixEverythingElse(\Extract\Extract::GetLocation($vevent));
+            $this->Description = \HTTP\HTTPRequests::FixEverythingElse(\Extract\Extract::GetDescription($vevent));
+            $this->Created = strtotime(\Extract\Extract::GetCreated($vevent));
+            $this->LastModified = strtotime(\Extract\Extract::GetLastModified($vevent));
+            $this->DateStamp =  strtotime(\Extract\Extract::GetDateStamp($vevent));
             $this->UID = \Extract\Extract::GetUID($vevent);
             //$this->XMozGeneration = \Extract\Extract::GetXMozGeneration($vevent);
-            //$this->rrule = \Extract\Extract::GetRRule($vevent);
+            $this->RRule = \Extract\Extract::GetRRule($vevent);
 
-            if(!in_array($this->UID, $this->BannedUIDs)) {
-                $this->BannedUIDs[] = $this->UID;
+            if(!in_array($this->UID, \Data\Event::$BannedUIDs)) {
+                \Data\Event::$BannedUIDs[] = $this->UID;
             }
 
 
@@ -1440,18 +1335,18 @@ namespace Data {
             $content[] = "UID:" . $UID;
             $content[] = "SUMMARY:" . $Summary;
             //@todo: Overhaul RRule.
-            /*
+
             if($RRule != null && $RRule != "") {
-                $content[] = "RRULE:" . $RRule;
+                $content[] = $RRule;
             }
-            */
+
             $content[] = "DTSTART;TZID=" . date("e", time()) . ":" . date("Ymd\THi00", $StartDate);  //date_default_timezone_get()
             $content[] = "DTEND;TZID=" . date("e", time()) . ":" . date("Ymd\THi00", $EndDate); //date()
 
             if($Location != null && $Location != "") {
                 $content[] = "LOCATION:" . $Location;
             }
-            if($this->Description != null && $Description != "") {
+            if($Description != null && $Description != "") {
                 $content[] = "DESCRIPTION:" . $Description;
             }
             //Mozilla extension.
@@ -1508,38 +1403,42 @@ namespace GUI {
         private $HTMLName = "CompositeDropDownControl";
         private $CSSClass = "CompositeDropDownControl";
         private $User = null;
-        private $Options = Array("Monthly", "Weekly", "Daily");
-        private $DefaultView = "";
+        private $Options = Array("Monthly" => 0, "Weekly" => 1, "Daily" => 2);
+        private $DefaultView = 0;
 
 
         public function __construct($User) {
             $this->User = $User;
-            $this->Refresh();
+            $this->GetDefaultView();
+            //$this->Refresh();
         }
 
         public function Draw() {
-            echo $this->RenderControl();
+            return $this->RenderControl();
         }
 
         private function RenderControl() {
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            $html .= "<SELECT NAME=\"DefaultView\">";
-            foreach($this->Options as $option) {
-            $html .= "<OPTION VALUE=\"" . $option . "\"";
-            if($this->DefaultView == $option) {
-                $html .= " selected=\"selected\"";
-            }
+            $html .= "<FORM METHOD='post' ACTION='calico_compositecalendar.php'>";
+            $html .= "<SPAN CLASS='fieldtext'>View:</SPAN>";
+            $html .= "<SELECT NAME=\"DefaultView\" onchange='this.form.submit()'>";
+            foreach($this->Options as $key => $value) {
+            $html .= "<OPTION VALUE=\"" . $value . "\"";
+                if($this->DefaultView == $value) {
+                    $html .= " selected=\"selected\"";
+                }
 
-            $html .= ">" . $option . "</OPTION>";
+            $html .= ">" . $key . "</OPTION>";
             }
             $html .= "</SELECT>";
+            $html .= "</FORM>";
             $html .= "</DIV>";
 
             return $html;
         }
 
-        private function GetDefaultViews() {
+        private function GetDefaultView() {
             $query = "SELECT `DefaultView` FROM `calico`.`settings` WHERE `UserID` = " . $this->User->GetUserID() . ";";
             $data = \SQL\SQL::DataQuery($query);
             $row = mysql_fetch_array($data);
@@ -1547,23 +1446,16 @@ namespace GUI {
         }
 
         public function Refresh() {
-           $this->GetDefaultViews();
-
-        }
-
-        // Prototype -> Takes in an HTML element id, plus its associated value. Will have to write something more complete here.
-        public function UpdateCallback($HTMLName, $Value) {
-            if(!($HTMLName == $this->HTMLName)) {
-                return;
-            }
+           $this->GetDefaultView();
 
         }
 
         public function Postback() {
-
+            if(isset($_POST["DefaultView"])) {
                 $this->DefaultView = $_POST["DefaultView"];
-                $query = "UPDATE `calico`.`settings` SET `DefaultView` = '" . $this->DefaultView . "' WHERE `UserID` = " . $this->User->GetUserID() . " ;";
-                $data = \SQL\SQL::NonDataQuery($query);
+                $query = "UPDATE `calico`.`settings` SET `DefaultView` = " . $this->DefaultView . " WHERE `UserID` = " . $this->User->GetUserID() . ";";
+                \SQL\SQL::NonDataQuery($query);
+            }
 
         }
 
@@ -1595,23 +1487,24 @@ namespace GUI {
         private $CSSClass = "CompositeCheckBoxControl";
 
         public function __construct($User) {
-
             $this->User = $User;
-            $this->Refresh();
         }
 
 
         private function RenderControl() {
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            for($i = 0; $i < count($this->CalendarData["CalendarName"]); $i++) {
-                $html .= $this->CalendarData["CalendarName"][$i]; //@todo: Put name in here.
-                $checked = "";
-                if($this->CalendarData["IsDisplayed"][$i] == 1){
-                    $checked = "CHECKED";
+            $html .= "<FORM METHOD='post' action='calico_compositecalendar.php'>";
+            $html .= "<SPAN class='fieldtext'>Calendars: </SPAN>";
+            foreach($this->CalendarData["CalendarName"] as $key => $value) {
+                $html .= "<INPUT TYPE=\"checkbox\" NAME=\"DisplayedCalendars[]\" VALUE=\"" . $key . "\"";
+                if($this->CalendarData["IsDisplayed"][$key] == 1){
+                    $html .= " CHECKED";
                 }
-                $html .= "<INPUT TYPE=\"checkbox\" NAME=\"DisplayedCalendars[]\" VALUE=\"" . $i . "\" " . $checked . " >";
+                $html .= " onchange='this.form.submit()'>";
+                $html .= "<SPAN CLASS='fieldtext'>" . $value . "</SPAN>";
             }
+            $html .= "</FORM>";
             $html .= "</DIV>";
 
             return $html;
@@ -1619,46 +1512,48 @@ namespace GUI {
 
         public function Draw() {
 
-            echo $this->RenderControl();
+            return $this->RenderControl();
 
         }
 
         public function Refresh() {
 
-            $query = "SELECT `CalendarName`, `IsDisplayed` FROM `calico`.`calendars` WHERE `UserID` = " . $this->User->GetUserID() . ";";
+            $query = "SELECT `CalendarName`, `CalendarID`, `IsDisplayed` FROM `calico`.`calendars` WHERE `UserID` = " . $this->User->GetUserID() . ";";
             $data = \SQL\SQL::DataQuery($query);
             //$this->CalendarData = Array();
             $this->CalendarData["CalendarName"] = Array();
             $this->CalendarData["IsDisplayed"] = Array();
+            $this->CalendarData["CalendarID"] = Array();
 
             while($row = mysql_fetch_array($data))
             {
 
-                $this->CalendarData["CalendarName"][] = base64_decode($row["CalendarName"]);
-                $this->CalendarData["IsDisplayed"][] = $row["IsDisplayed"];
+                $this->CalendarData["CalendarName"][$row["CalendarID"]] = base64_decode($row["CalendarName"]);
+                $this->CalendarData["IsDisplayed"][$row["CalendarID"]] = $row["IsDisplayed"];
 
             }
 
         }
 
         public function Postback() {
-
+            //if(isset($_POST["DisplayedCalendars"])) {
             $this->Refresh();
-            for($i = 0; $i < count($this->CalendarData["IsDisplayed"]); $i++) {
-                $this->CalendarData["IsDisplayed"] = 0;
-            }
+                for($i = 0; $i < count($this->CalendarData["IsDisplayed"]); $i++) {
+                    $this->CalendarData["IsDisplayed"][$i] = 0;
+                }
 
-            $displayedcalendars = $_POST["DisplayedCalendars"];
-            foreach($displayedcalendars as $key => $value) {
-                if($value == "checked") {
-                   $this->CalendarData["IsDisplayed"][$key] = 1;
+            if(isset($_POST["DisplayedCalendars"])) {
+                $displayedcalendars = $_POST["DisplayedCalendars"];
+                foreach($displayedcalendars as $key => $value) {
+                       $this->CalendarData["IsDisplayed"][$value] = 1;
                 }
             }
 
-            for($i = 0; $i < count($this->CalendarData["IsDisplayed"]); $i++) {
-                $query = "UPDATE `calico`.`calendars` SET `IsDisplayed` = " . $this->CalendarData["IsDisplayed"][$i] . " WHERE `UserID` = " . $this->User->GetUserID() . " AND `CalendarName` = '" . base64_encode($this->CalendarData["CalendarName"][$i]) . "';";
-                $data = \SQL\SQL::NonDataQuery($query);
-            }
+                foreach($this->CalendarData["IsDisplayed"] as $key => $value) {
+                    $query = "UPDATE `calico`.`calendars` SET `IsDisplayed` = " . $value . " WHERE `UserID` = " . $this->User->GetUserID() . " AND `CalendarID` = " . $key . ";";
+                    \SQL\SQL::NonDataQuery($query);
+                }
+
 
         }
 
@@ -1687,15 +1582,16 @@ class DivEvent {
     private $StartTime = 0;
     private $EndTime = 0;
     private $RowIndexStart = 0;
-    private $RowIndexEnd = 0;
+    private $NumRows = 0;
+    //private $RowIndexEnd = 0;
     private $ColumnIndex = 0;
     private $Event = null;
 
-    public function __construct($Event, $StartTime, $EndTime, $ColumnIndex, $RowIndexStart, $RowIndexEnd) {
+    public function __construct($Event, $StartTime, $EndTime, $ColumnIndex, $RowIndexStart, $NumRows) {
         $this->Event = $Event;
         $this->ColumnIndex = $ColumnIndex;
         $this->RowIndexStart = $RowIndexStart;
-        $this->RowIndexEnd = $RowIndexEnd;
+        $this->NumRows = $NumRows;
     }
 
     public function GetEvent() {
@@ -1718,14 +1614,14 @@ class DivEvent {
         return $this->RowIndexStart;
     }
 
-    public function GetRowIndexEnd() {
-        return $this->RowIndexEnd;
+    public function GetNumRows() {
+        return $this->NumRows;
     }
 
 }
 
 class Bitmap {
-    private $Data = Array(Array());
+    private $Data = Array();
     private $Height = 0;
 
     public function __construct($Height) {
@@ -1738,39 +1634,54 @@ class Bitmap {
 
     private function FillColumn($Column) {
         for($row = 0; $row < $this->Height; $row++) {
+            //echo "Filling Column(" . $Column . ") Row:(" . $row . ") with a 0.<BR>";
             $this->Data[$Column][$row] = 0;
         }
     }
 
     private function AddColumn() {
         $this->Data[] = Array();
-        $newcolumn = $this->Data[count(Data) - 1];
-        $this->FillColumn($newcolumn);
-        return $newcolumn;
+        //echo "Column Added<BR>";
+        //$this->Data[count($this->Data) - 1];
+        $this->FillColumn(count($this->Data) - 1);
+        //return $newcolumn;
     }
 
     public function FillRows($Row, $NumRows, $Column) {
         for($row = $Row; $row < $Row + $NumRows; $row++) {
+            //echo "Filling Column(" . $Column . ") Row:(" . $row . ") with a 1.<BR>";
             $this->Data[$Column][$row] = 1;
         }
+
+        //print_r($this->Data);
     }
 
     public function FindEmpty($Row, $NumRows) {
         //Columns
+        //echo "Number of Columns: " . count($this->Data) . "<BR>";
         for($col = 0; $col < count($this->Data); $col++) {
             //Rows
             $foundempty = true;
             for($row = $Row; $row < $Row + $NumRows; $row++) {
-                if($this->Data[$col][$row] == 0) {
+                if($this->Data[$col][$row] != 0) {
                     $foundempty = false;
                 }
             }
             if($foundempty == true) {
+                //echo "FindEmpty()-> " . $col . "<BR>";
+                //print_r($this->Data);
                 return $col;
             }
+            /*
+            else {
+                echo "No Empty Column Found At: " . $col . "<BR>";
+            }
+            */
         }
 
         $this->AddColumn();
+        //echo "FindEmpty(New)-> " . count($this->Data) - 1 . "<BR>";
+        //print_r($this->Data);
         return count($this->Data) - 1;
     }
 
@@ -1787,13 +1698,13 @@ class Bitmap {
         private $CalendarList = Array();
         private $User = null;
         private $View = 1;
-        private $SelectedTime;
+        private $SelectedTime = 0;
         private $CompositeDropDown;
         private $CompositeCheckBox;
         const Monthly = 0;
         const Weekly = 1;
         const Daily = 2;
-
+        /*
         private static $Days = Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
         //@todo: Need to change these strings to html, with superscripts.
         //Prototype code: <span style=\"vertical-align: super;font-size:50%;\"></span>
@@ -1801,7 +1712,7 @@ class Bitmap {
             "7 AM"=>"7 <SPAN CLASS=\"period\">AM</SPAN>", "8 AM"=>"8 <SPAN CLASS=\"period\">AM</SPAN>", "9 AM"=>"9 <SPAN CLASS=\"period\">AM</SPAN>", "10 AM"=>"10 <SPAN CLASS=\"period\">AM</SPAN>", "11 AM"=>"11 <SPAN CLASS=\"period\">AM</SPAN>", "12 PM"=>"12 <SPAN CLASS=\"period\">PM</SPAN>", "1 PM"=>"1 <SPAN CLASS=\"period\">PM</SPAN>", "2 PM"=>"2 <SPAN CLASS=\"period\">PM</SPAN>",
         "3 PM"=>"3 <SPAN CLASS=\"period\">PM</SPAN>", "4 PM"=>"4 <SPAN CLASS=\"period\">PM</SPAN>", "5 PM"=>"5 <SPAN CLASS=\"period\">PM</SPAN>", "6 PM"=>"6 <SPAN CLASS=\"period\">PM</SPAN>",
             "7 PM"=>"7 <SPAN CLASS=\"period\">PM</SPAN>", "8 PM"=>"8 <SPAN CLASS=\"period\">PM</SPAN>", "9 PM"=>"9 <SPAN CLASS=\"period\">PM</SPAN>", "10 PM"=>"10 <SPAN CLASS=\"period\">PM</SPAN>", "11 PM"=>"11 <SPAN CLASS=\"period\">PM</SPAN>");
-
+        */
         private $HTMLName = "CompositeCalendarControl";
         private $CSSClass = "CompositeCalendarControl";
 
@@ -1809,7 +1720,14 @@ class Bitmap {
         public function __construct($User) {
             $this->User = $User;
             //$this->Refresh();
-            $this->SelectedTime = time();
+            if(!isset($_SESSION["TIME"])) {
+                $this->SelectedTime = time();
+            }
+            else {
+                //echo "Session Time: " . date("j", $_SESSION["TIME"]) . "<BR>";
+                $this->SelectedTime = $_SESSION["TIME"];
+                //echo "Day: " . date('d', strtotime($this->SelectedTime)) . " Month: " . date('m', strtotime($this->SelectedTime)) . " Year " . date('Y', strtotime($this->SelectedTime)) . "<BR>";
+            }
             $this->CompositeDropDown = new \GUI\CompositeDropDown($this->User);
             $this->CompositeCheckBox = new \GUI\CompositeCheckBox($this->User);
 
@@ -1819,10 +1737,21 @@ class Bitmap {
 
         // @todo: Work on this later. Reading pane functionality should be implemented with this kind of code.
         public function Ajax() {
-            //xmlhttp.open("POST","ajax_test.asp",true);
-            //xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-            //xmlhttp.send("fname=Henry&lname=Ford");
-            //xmlhttp.responseText;
+            $javascript = "
+            var xmlhttp;
+            if (window.XMLHttpRequest)
+            {// code for IE7+, Firefox, Chrome, Opera, Safari
+                xmlhttp = new XMLHttpRequest();
+            }
+            else
+            {// code for IE6, IE5
+                xmlhttp = new ActiveXObject(\"Microsoft.XMLHTTP\");
+            }
+            xmlhttp.open(\"POST\",\"calico_compositecalendar.php\",true);
+            xmlhttp.setRequestHeader(\"Content-type\",\"application/x-www-form-urlencoded\");
+            xmlhttp.send(\"User=&\");
+            xmlhttp.responseText;
+            ";
         }
 
         // List of Calendar names to display alongside the checkboxes.
@@ -1831,44 +1760,69 @@ class Bitmap {
         // Make it read only, and have an Edit button that when clicked directs the user to the Edit Event control.
         public function RenderControl() {
             require_once('/calendar/calendar/classes/tc_calendar.php');
-            $html = "";
 
+            $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
+            $html .= "<SPAN CLASS='header'>Calico: Composite Calendar</SPAN>";
+            $html .= "<BR>";
             $html .= "<FORM METHOD=\"Post\" ACTION=\"calico_calendar.php\">";
-            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Calendar Manager\">";
+            $html .= "<INPUT CLASS='button' TYPE=\"Submit\" VALUE=\"Calendar Manager\">";
             $html .= "</FORM>";
             $html .= "<FORM METHOD=\"Post\" ACTION=\"calico_feed.php\">";
-            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Feed Manager\">";
+            $html .= "<INPUT CLASS='button' TYPE=\"Submit\" VALUE=\"Feed Manager\">";
             $html .= "</FORM>";
             $html .= "<FORM METHOD=\"Post\" ACTION=\"calico_event.php\">";
-            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"New Event\">";
+            $html .= "<INPUT CLASS='button' TYPE=\"Submit\" VALUE=\"New Event\">";
             $html .= "</FORM>";
-            $html .= $this->CompositeDropDown->Draw();
-            $html .= $this->CompositeCheckBox->Draw();
+            $dropdownhtml = $this->CompositeDropDown->Draw();
+            $checkboxhtml = $this->CompositeCheckBox->Draw();
+            $html .= $dropdownhtml;
+            $html .= $checkboxhtml;
 
-            $html .= "<SCRIPT LANGUAGE=\"javascript\" src=\"/calendar/calendar/calendar.js\"></SCRIPT>";
-            $html .= "Selected Date:";
+            $html .= "<FORM action=\"calico_compositecalendar.php\" method=\"post\" NAME='myCalendar'>";
+            $html .= "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\"><tr><td nowrap>";
+            $html .= "<SPAN CLASS='fieldtext'>Selected Date:</SPAN>";
+            $html .= "</td><td>";
+            $html .= "<SCRIPT LANGUAGE=\"javascript\" src=\"calendar/calendar/calendar.js\"></SCRIPT>";
+
             //@todo: give an appropriate html name to this.
-            $myCalendar = new tc_calendar("compositecalendardatepicker", true, false);
+            $myCalendar = new \tc_calendar("compositecalendardatepicker", true, false);
             $myCalendar->setIcon("calendar/calendar/images/iconCalendar.gif");
-            $myCalendar->setDate(date('d', strtotime($this->SelectedTime))
-                , date('m', strtotime($this->SelectedTime))
-                , date('Y', strtotime($this->SelectedTime)));
-            $myCalendar->setDate(date('d'), date('m'), date('Y'));
+            //$myCalendar->setDate(01, 03, 2010);
+
+            $myCalendar->setDate(date('d', $this->SelectedTime)
+                , date('m', $this->SelectedTime)
+                , date('Y', $this->SelectedTime));
+
+            //echo "Day: " . date('d', $this->SelectedTime) . " Month: " . date('m', $this->SelectedTime) . " Year " . date('Y', $this->SelectedTime) . "<BR>";
+
+            //$myCalendar->setDate(date('d'), date('m'), date('Y'));
             $myCalendar->setPath("calendar/calendar/");
             $myCalendar->setYearInterval(2000, 2050);
             $myCalendar->dateAllow('2008-05-13', '2015-03-01');
             $myCalendar->setDateFormat('j F Y');
             $myCalendar->setAlignment('left', 'bottom');
-
+            $myCalendar->autoSubmit(true, "myCalendar");
+            $myCalendar->zindex = 10;
             // This should, hypothetically, redirect the output from echo to a string.
             // It's either this, or rewrite the control.
 
             ob_start();
             $myCalendar->writeScript();
-            $html .= ob_get_contents();
+            $calendarhtml = ob_get_contents();
             ob_end_clean();
+            $html .= "<SPAN CLASS='fieldtext'>";
+            $html .= $calendarhtml;
+            $html .= "</SPAN>";
+            $html .= "</td></tr></table>";
+            $html .= "</FORM>";
 
+            $html .= "<DIV NAME=\"CalendarRefreshButton\" CLASS='RefreshButton' style='position:absolute;height:8%;width:9%;z-index:1'>";
+            $html .= "<FORM METHOD=\"Get\" ACTION=\"calico_compositecalendar.php\">";
+            $html .= "<INPUT CLASS='button' TYPE=\"Submit\" VALUE=\"Refresh\">";
+            $html .= "</FORM>";
+            $html .= "</DIV>";
+            $html .="<BR><BR><BR>";
             $html .= $this->RenderView();
 
             $html .= "</DIV>";
@@ -1899,11 +1853,11 @@ class Bitmap {
             if(date("i", $Timestamp) != 30 && date("i", $Timestamp) != 0) {
                 if(date("i", $Timestamp) < 30) {
                     // 7:08 - 0:08
-                    $Timestamp -= date("i", $Timestamp);
+                    $Timestamp -= date("i", $Timestamp) * 60;
                 }
                 else{
                     // 0:30 - 7:38 = 8
-                    $Timestamp -= (30 * 60) - date("i", $Timestamp);
+                    $Timestamp -= ((30 - date("i", $Timestamp)) * 60);
                 }
 
             }
@@ -1916,12 +1870,13 @@ class Bitmap {
         private function RoundEndTime($Timestamp) {
             if(date("i", $Timestamp) != 30 && date("i", $Timestamp) != 0) {
                 if(date("i", $Timestamp) < 30) {
-                    // 7:30 - 7:08 = +22
-                    $Timestamp += (30 * 60) - date("i", $Timestamp);
+                    // 7:11 + 0:19
+                    //echo "Minutes Added: " . date("i", ((30 * 60) - date("i", $Timestamp))) . "<BR>";
+                    $Timestamp += ((30 - date("i", $Timestamp)) * 60);
                 }
                 else{
                     // 8:00 - 7:38 = +22
-                    $Timestamp += (60 * 60) - date("i", $Timestamp);
+                    $Timestamp += ((60 - date("i", $Timestamp)) * 60);
                 }
 
             }
@@ -1961,141 +1916,7 @@ class Bitmap {
             return $events;
         }
 
-        /*
-        private function GetMaxWidth($events) {
-            $maxwidth = 0;
-            for($i = 0; $i < count($events); $i++) {
-                for($j = 0; $j < count($events[$i]); $j++) {
-                    if(count($events[$i][$j]) > $maxwidth) {
-                        $maxwidth = count($events[$i][$j]);
-                    }
-                }
-            }
 
-            return $maxwidth;
-
-        }
-        */
-
-
-        /*
-
-        // Attempts to perform some space-fitting (arrange the various event rectangles) to make more efficient use of screen space.
-        private function OrganizeEvents($segmentstart, $segmentend, $increment, $events) {
-            //@todo: First, create the array.
-            $organize = Array();
-            $info = Array();
-            //@todo: Then fill it with increments.
-            for($time = $segmentstart; $time < $segmentend; $time == $increment) {
-                $organize[$time] = Array();
-            }
-            $columns = 0;
-            //@todo: Then attempt to fill each increment.
-            foreach($events as $event) {
-                $x = 0;
-                $starttime = $event->GetStartDate;
-                if($starttime < $segmentstart) {
-                    $starttime = $segmentstart;
-                } else if(date("i", $starttime) != 30 && date("i", $starttime) != 0) {
-                    if(date("i", $starttime) < 30) {
-                        $starttime -= date("i", $starttime);
-                    }
-                    else{
-                        $starttime = (30 * 60) - date("i", $starttime);
-                    }
-
-                }
-                $endtime = $event->GetEndDate;
-                if($endtime > $segmentend) {
-                    $endtime = $segmentend;
-                }
-                else if(date("i", $endtime) != 30 && date("i", $endtime) != 0) {
-                    if(date("i", $endtime) < 30) {
-                        $endtime -= date("i", $endtime);
-                    }
-                    else{
-                        $endtime = (30 * 60) - date("i", $endtime);
-                    }
-
-                }
-                //$time = $starttime; // Round to the nearest increment.
-                // Check if the key exists, and if it has anything set for it.
-                $newcolumn = true;
-                //Check if the event will fit in any current column.
-                for($x = 0; x < $columns; $x++) {
-                    // Check if the column exists. If not, add it.
-                    if(!array_key_exists("x" + $x, $organize[$starttime])) {
-                        //Might want a while loop here. In case of multiple columns that need to be added.
-                        $organize[$starttime]["x" + $x] = null;
-                    }
-                    if($organize[$starttime]["x" + $x] == null) {
-                        // If it doesn't, keep checking the available time slots, in increments, until the endtime.
-                        // Then, put the event in question into that slot.
-                        $nexttime = $increment + $starttime;
-
-                        while($nexttime < $endtime) {
-                            if(!array_key_exists("x" + $x, $organize[$nexttime])) {
-                                //Might want a while loop here. In case of multiple columns that need to be added.
-                                for($i = count($organize[$nexttime]); $i < $x; $i++) {
-                                    $organize[$nexttime]["x" + $x] = null;
-                                }
-                            }
-                            if($organize[$nexttime]["x" + $x] == null) {
-                                $nexttime += $increment;
-                            }
-                        }
-                        if($nexttime >= $endtime) {
-                            $newcolumn = false;
-                            //Add event to all slots.
-
-                            //@todo: Add event info here.
-                            $info["ColumnIndex"] = $x;
-                            $info["RowIndexStart"] = $starttime;
-
-                            for($t = $starttime; $t < $endtime; $t += $increment) {
-                                $organize[$t]["x" + $x] = $event;
-
-                            }
-                            $info["RowIndexEnd"] = $endtime;
-
-
-
-
-
-                            break;
-                        }
-
-
-
-                    }
-
-                }
-
-                if($newcolumn) {
-                    $columns++;
-                    $info["ColumnIndex"] = $columns;
-                    $info["RowIndexStart"] = $starttime;
-                    for($t = $starttime; $t < $endtime; $t += $increment) {
-                        for($i = count($organize[$t]); $i < $columns; $i++) {
-                            $organize[$t]["x" + $i] = null;
-                        }
-
-                        $organize[$t]["x" + $columns] = $event;
-                    }
-                    $info["RowIndexEnd"] = $endtime;
-
-                }
-            }
-
-            $value = Array();
-            $value["Organize"] = $organize;
-            $value["Info"] = $info;
-
-            return $value;
-
-        }
-
-        */
 
         public function RenderMonthly() {
             $html = "";
@@ -2118,15 +1939,9 @@ class Bitmap {
         public function RenderWeekly() {
             $html = "";
 
-            //@todo: Set a time range, with which to decide which events we care about.
-            //@todo: Get a list of all dates of this week.
-
-            //@todo: Add 'Week:' text here.
-
-            // StartDate = Time(Y-m-d) - Time(w) DayofWeek (Sunday, 12:00 AM)
-            // EndDate = (Time(Y-M-D) - Time(w) DayofWeek) + 1 week) (Sunday 12:00 AM)
+            
             $weekstart = strtotime("-" . date("w", $this->SelectedTime) . " day", strtotime(date("Y-m-d", $this->SelectedTime)));
-            $weekend = strtotime("+6 days", strtotime(date("Y-m-d", $this->SelectedTime)));
+            $weekend = strtotime("+1 week", strtotime(date("Y-m-d", $weekstart)));
 
             $events = $this->GetRelevantEvents($weekstart, $weekend);
             $increment = 30 * 60; // 30 minutes
@@ -2147,14 +1962,13 @@ class Bitmap {
             //4% for each div, 8% for the column headers.
             //7 days, with row headers -> 100/8 -> 12.5, 7 * 12.5 = 87.5, 13% for, 91%, 9%
 
-            $html .= "<DIV style=\"position:absolute\">";
-            $html .= "<DIV NAME=\"Calendar\">";
-            //Refresh button. Upper left.
-            $html .= "<DIV NAME=\"CalendarRefreshButton\" CLASS='RefreshButton' style='position:absolute;height:8%;width:9%;z-index:1'>";
-            $html .= "<FORM METHOD=\"Get\" ACTION=\"calico_compositecalendar.php\">";
-            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Refresh\">";
-            $html .= "</FORM>";
+            $html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
+            $html .= "<FORM method='post' action='calico_compositecalendar.php'>";
+            //$html .= "<DIV NAME=\"Calendar\">";
+            $html .= "<DIV CLASS='slice' style='position:absolute;top:0%;left:0%;width:12%;height:2%;z-index:1;'>";
+            //$html .= "<B>" . date("j", $segment) . "</B>&nbsp;&nbsp;&nbsp;&nbsp;" . date("l", $segment);
             $html .= "</DIV>";
+
 
             $columnwidth = 13;
             $columnheight = 8;
@@ -2169,20 +1983,21 @@ class Bitmap {
 
             $i = 1;
             foreach($segments["Start"] as $segment) {
-                $html .= "<DIV NAME=\"CalendarColumnHeader\" CLASS='ColumnHeader' style='position:absolute;left:" . $i * 2 . "00px;z-index:1'>";
-                $html .= "<B>" . date("j", $segment) . "</B>&nbsp;&nbsp;&nbsp;&nbsp;" . date("l", $segment);
+                $html .= "<DIV  CLASS='slice' style='position:absolute;top:0%;left:" . $i * 12 . "%;width:12%;height:2%;z-index:1;'>";
+                $html .= "<B>" . date("j", $segment) . "</B>" . date("l", $segment);
                 $html .= "</DIV>";
                 $i++;
             }
 
-
+            $i = 1;
             for($t = $segments["Start"][0]; $t < $segments["End"][0]; $t += $increment) {
                 //Row headers.
-                $html .= "<DIV NAME=\"CalendarRowHeader\" CLASS='RowHeader' style='height:4%;width:9%;z-index:1'>";
-                if(date("i", $t) == 0) {
-                    $html .= date("g", $t) . ":" . date("i", $t) . date("A", $t);
-                }
+                $html .= "<DIV  CLASS='slice' style='position:absolute;top:" . $i * 2 . "%;left:0%;width:12%;height:2%;z-index:1;text-align:center;'>";
+                //if(date("i", $t) == 0) {
+                    $html .= date("g", $t) . ":" . date("i", $t) . "<SPAN Style='font-size:xx-small; vertical-align:top;'>" . date("A", $t) . "</SPAN>";
+                //}
                 $html .= "</DIV>";
+                $i++;
             }
 
             /*
@@ -2198,28 +2013,57 @@ class Bitmap {
                 $segmentend = $segments["End"][$t]; //Segment (of time) End here = NextDay @ 12:00AM
 
                 $divevents = Array();
-                $bitmap = new Bitmap(48);
+                $bitmap = new \GUI\Bitmap(48);
+                //echo "New Bitmap<BR>";
                 foreach($events as $event) {
+
                     $roundstart = $this->RoundStartTime($event->GetStartDate());
+                    if($roundstart < $segmentstart) {
+                        $roundstart = $segmentstart;
+                    }
+
                     $roundend = $this->RoundEndTime($event->GetEndDate());
-                    if(TimeRangeContains($segmentstart, $segmentend, $roundstart, $roundend)) {
-                        $startrow = date("H", $roundstart) + date("i", $roundstart) / 30;
-                        $numrows = (date("H", $roundend) + date("i", $roundend) / 30) - $startrow;
+                    if($roundend > $segmentend) {
+                        $roundend = $segmentend;
+                    }
+
+                    if($this->TimeRangeContains($segmentstart, $segmentend, $roundstart, $roundend)) {
+                        $startrow = (int)(((int)(date("H", $roundstart))) * 2 + ((int)(date("i", $roundstart))) / ((int)(30)));
+                        $endrow = (int)(((int)date("H", $roundend)) * 2 + (((int)(date("i", $roundend))) / (int)(30)));
+                        if($roundend == $segmentend) {
+                            $endrow = 48;
+                        }
+
+                        $numrows =  $endrow - $startrow;
+
+                        /*
+                        echo "Start Time: " . date("j F Y H:i:s", $event->GetStartDate()) . "<BR>";
+                        echo "End Time: " . date("j F Y H:i:s", $event->GetEndDate()) . "<BR>";
+                        echo "Rounded Start Time: " . date("j F Y H:i:s", $roundstart) . "<BR>";
+                        echo "Rounded End Time: " . date("j F Y H:i:s", $roundend) . "<BR>";
+                        echo "Start Row: " . $startrow . "<BR>";
+                        echo "End Row: " . $endrow . "<BR>";
+                        echo "Num Rows: " . $numrows . "<BR>";
+                        */
 
 
                         $column = $bitmap->FindEmpty($startrow, $numrows);
+                        //echo "Found Empty Column: " . $column . "<BR>";
                         $bitmap->FillRows($startrow, $numrows, $column);
+                        //echo "Filling Column<BR>";
 
-                        $divevents[] = new DivEvent($roundstart, $roundend, $startrow, $startrow + $numrows, $column, $event);
+                        $divevents[] = new \GUI\DivEvent($event, $roundstart, $roundend, $column, $startrow, $numrows);
                     }
                 }
 
 
 
                 foreach($divevents as $divevent) {
-                    $html .= "<DIV NAME=\"CalendarRow\" CLASS='Row' style='top:4%;right:4%;height:4%;width:13%;z-index:1'>";
+                    $html .= "<Button TYPE='submit' NAME='EVENTBUTTON' VALUE='" . base64_encode(implode("<CALICO/>", array($divevent->GetEvent()->GetSuperFeedURL(), $divevent->GetEvent()->GetFeedURL(), $divevent->GetEvent()->GetETAG()))) . "' CLASS='event' style='position:absolute;top:" . ($divevent->GetRowIndexStart() * 2 + 2) . "%;left:" . ((12 * $t + 12) + (12 / $bitmap->GetNumColumns()) * $divevent->GetColumnIndex()) . "%;width:" . 12 / $bitmap->GetNumColumns() . "%;height:" . 2 * $divevent->GetNumRows() . "%;z-index:2' '>";
+                    $html .= "<BR>";
                     $html .= $divevent->GetEvent()->GetSummary();
-                    $html .= "</DIV>";
+                    $html .= "<BR>";
+                    $html .= "</Button>";
 
                 }
             }
@@ -2229,7 +2073,8 @@ class Bitmap {
 
             // Need to create divs, filled with buttons, that span each segment, and are positioned over the above divs.
             // Relative positioning, with percentage-based sizes should work here.
-            $html .= "</DIV>";
+            //$html .= "</DIV>";
+            $html .= "</FORM>";
             $html .= "</DIV>";
 
             return $html;
@@ -2250,7 +2095,7 @@ class Bitmap {
         }
 
         public function Draw() {
-            echo $this->RenderControl();
+            return $this->RenderControl();
         }
 
         public function Refresh() {
@@ -2261,7 +2106,9 @@ class Bitmap {
 
             while($row = mysql_fetch_array($data))
             {
-                $this->CalendarList[] = new Calendar($row['CalendarID']);
+                $newcalendar = new \Data\Calendar($row['CalendarID']);
+                $newcalendar->Refresh();
+                $this->CalendarList[] = $newcalendar;
             }
             $this->CompositeDropDown->Refresh();
             $this->CompositeCheckBox->Refresh();
@@ -2270,6 +2117,33 @@ class Bitmap {
 
         public function Postback() {
             //@todo: Get DatePicker value and what not here.
+
+            if(isset($_POST["EVENTBUTTON"])) {
+                //echo "Got Event!<BR>";
+                //
+
+                $eventdata = explode("<CALICO/>", base64_decode($_POST["EVENTBUTTON"]));
+                $superfeedurl = $eventdata[0];
+                $feedurl = $eventdata[1];
+                $etag = $eventdata[2];
+                $event = \Data\Event::CreateFromURLs($superfeedurl, $feedurl, $etag);
+
+                $_SESSION["EVENT"] = serialize($event);
+
+                \HTTP\HTTPRedirector::Redirect("calico_event.php");
+                //echo $superfeedurl . "<BR>";
+                //echo $feedurl . "<BR>";
+
+            }
+
+            if(isset($_REQUEST["compositecalendardatepicker"])) {
+                $this->SelectedTime = strtotime($_REQUEST["compositecalendardatepicker"]);
+                $_SESSION["TIME"] = strtotime($_REQUEST["compositecalendardatepicker"]);
+            }
+
+
+
+
             $this->CompositeDropDown->Postback();
             $this->CompositeCheckBox->Postback();
 
@@ -2298,12 +2172,118 @@ class Bitmap {
 
     }
 
+class NewAccount {
+    private $HTMLName = "NewAccountControl";
+    private $CSSClass = "NewAccountControl";
+    private $AccountError = "";
+    private $AccountSuccess = "";
+
+    public function __construct() {
+
+    }
+
+    private function RenderControl() {
+        $html = "";
+        $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
+        $html .= "<FORM NAME=\"input\" ACTION=\"calico_newaccount.php\" METHOD=\"post\">";
+        $html .= "<SPAN CLASS='header'>Calico: New Account</SPAN>";
+        $html .= "<BR>";
+        $html .= "<SPAN CLASS='fieldtext'>Username:</SPAN>";
+        $html .= "<INPUT TYPE=\"text\" NAME=\"Username\">";
+        $html .= "<BR>";
+        $html .= "<SPAN CLASS='fieldtext'>Password:</SPAN>";
+        $html .= "<INPUT TYPE=\"password\" NAME=\"Password\">";
+        $html .= "<BR>";
+        $html .= "<INPUT CLASS='button' TYPE=\"Submit\" NAME=\"OK\" VALUE=\"Ok\">";
+        $html .= "<BR>";
+        $html .= "</FORM>";
+        $html .= "<FORM NAME=\"input\" ACTION=\"calico_login.php\" METHOD=\"post\">";
+        $html .= "<INPUT CLASS='button' TYPE=\"Submit\" VALUE=\"Return to Login\">";
+        $html .= "</FORM>";
+        if($this->AccountError != "") {
+            $html .= "<BR>";
+            $html .= "<SPAN CLASS=\"errortext\">" . $this->AccountError . "</SPAN>";
+        }
+        if($this->AccountSuccess != "") {
+            $html .= "<BR>";
+            $html .= "<SPAN CLASS=\"errortext\">" . $this->AccountSuccess . "</SPAN>";
+        }
+        $html .= "</DIV>";
+
+        return $html;
+    }
+
+    public function Draw() {
+        return $this->RenderControl();
+    }
+
+    public function Refresh() {
+        // Included for completeness sake.
+    }
+
+    public function Postback() {
+        $this->AccountError = "";
+        $this->AccountSuccess = "";
+
+        if(isset($_POST["OK"])) {
+            if(!isset($_POST["Username"]) || $_POST["Username"] == "") {
+                $this->AccountError .= "Username Error: Please enter a valid username.<BR>";
+            }
+
+            if(!isset($_POST["Password"]) || $_POST["Password"] == "") {
+                $this->AccountError .= "Password Error: Please enter a valid password.<BR>";
+            }
+
+            if($this->AccountError == "") {
+                $this->AddUser($_POST["Username"], $_POST["Password"]);
+                $this->AccountSuccess = "New user account successfully created.<BR>";
+            }
+        }
+            //\HTTP\HTTPRedirector::Redirect("calico_compositecalendar.php");
+
+
+    }
+
+    private function AddUser($Username, $Password) {
+        $insertquery = "INSERT INTO `calico`.`users` (`Username`, `Password`) VALUES ('" . base64_encode($Username) . "','" . base64_encode($Password) . "');";
+        \SQL\SQL::NonDataQuery($insertquery);
+
+        $selectquery = "SELECT `UserID` FROM `calico`.`users` WHERE `Username` = '" . base64_encode($Username) . "' AND `Password` = '" . base64_encode($Password) . "';";
+        $data = \SQL\SQL::DataQuery($selectquery);
+        $row = mysql_fetch_array($data);
+        $userid = $row["UserID"];
+
+        $insertquery2 = "INSERT INTO `calico`.`settings` (`DefaultView`, `UserID`) VALUES (1, " . $userid . ");";
+        \SQL\SQL::NonDataQuery($insertquery2);
+
+    }
+
+    public function CSSClass($CSSClass = null) {
+        if($CSSClass == null) {
+            return $this->CSSClass;
+        }
+        else {
+            $this->CSSClass = $CSSClass;
+        }
+    }
+
+    public function HTMLName($HTMLName = null) {
+        if($HTMLName == null) {
+            return $this->HTMLName;
+        }
+        else {
+            $this->HTMLName = $HTMLName;
+        }
+    }
+
+}
+
     // Login -> a control to handle the login aspect of things. Will be a GUI control.
     class Login {
         private $User = null;
         private $HTMLName = "LoginControl";
         private $CSSClass = "LoginControl";
-        private $LoginError = false;
+        private $LoginError = "";
 
         //@todo: Need to remember to check Update() in general, or whatever I am going to call this callback, and to encode / escape / sanitize the SQL inputs to prevent SQL injection attacks.
 
@@ -2313,27 +2293,34 @@ class Bitmap {
 
         private function RenderControl() {
             $html = "";
-            $html .= "<FORM NAME=\"input\" ACTION=\"calico_login.php\" METHOD=\"post\">";
+
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            $html .= "Username:";
+            $html .= "<FORM NAME=\"input\" ACTION=\"calico_login.php\" METHOD=\"post\">";
+            $html .= "<SPAN CLASS='header'>Calico: Login</SPAN>";
+            $html .= "<BR>";
+            $html .= "<SPAN CLASS='fieldtext'>Username:</SPAN>";
             $html .= "<INPUT TYPE=\"text\" NAME=\"Username\">";
             $html .= "<BR>";
-            $html .= "Password:";
-            $html .= "<INPUT TYPE=\"text\" NAME=\"Password\">";
+            $html .= "<SPAN CLASS='fieldtext'>Password:</SPAN>";
+            $html .= "<INPUT TYPE=\"password\" NAME=\"Password\">";
             $html .= "<BR>";
-            $html .= "<INPUT TYPE=\"Submit\" VALUE=\"Login\">";
-            if($this->LoginError) {
+            $html .= "<INPUT CLASS='button' TYPE=\"Submit\" NAME=\"Login\" VALUE=\"Login\">";
+            $html .= "</FORM>";
+            $html .= "<FORM NAME=\"input\" ACTION=\"calico_newaccount.php\" METHOD=\"post\">";
+            $html .= "<INPUT CLASS='button'TYPE=\"Submit\" VALUE=\"New Account\">";
+            $html .= "</FORM>";
+            if($this->LoginError != "") {
                 $html .= "<BR>";
-                $html .= "<SPAN CLASS=\"Error\">Login Error: Please check that your username and password are valid.</SPAN>";
+                $html .= "<SPAN CLASS='errortext'>" . $this->LoginError . "</SPAN>";
             }
             $html .= "</DIV>";
-            $html .= "</FORM>";
+
 
             return $html;
         }
 
         public function Draw() {
-            echo $this->RenderControl();
+            return $this->RenderControl();
         }
 
         // Returns boolean, indicating whether a user was successfully validated.
@@ -2360,17 +2347,38 @@ class Bitmap {
         }
 
         public function Postback() {
-            if(isset($_POST["Username"]) && isset($_POST["Password"])) {
+            $this->LoginError = "";
+
+            if(isset($_POST["Login"])) {
+
+                if(!isset($_POST["Username"]) || $_POST["Username"]) {
+                    $this->LoginError .= "Username Error: Please enter a valid username.<BR>";
+                }
+                if(!isset($_POST["Password"]) || $_POST["Password"]) {
+                    $this->LoginError .= "Password Error: Please enter a valid password.<BR>";
+                }
+
                 $this->User = $this->Validate($_POST["Username"], $_POST["Password"]);
                 if($this->User != null) {
                     //include_once("calico_classes_v2.php");
                     session_start();
                     //session_register("USER");
                     $_SESSION["USER"] = serialize($this->User);
+                    unset($_SESSION["EVENT"]);
                     \HTTP\HTTPRedirector::Redirect("calico_compositecalendar.php");
                 }
+                else {
+                    $this->LoginError .= "Validation Error: Please enter a valid username and password.";
+                }
+
             }
-            $this->LoginError = true;
+
+
+
+            if(isset($_POST["Username"]) && isset($_POST["Password"])) {
+
+            }
+
         }
 
         public function CSSClass($CSSClass = null) {
@@ -2409,23 +2417,23 @@ class Bitmap {
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
             $html .= "<FORM METHOD='post'  ACTION='calico_calendar.php'>";
-            $html .= "Calico: Calendar Manager";
+            $html .= "<SPAN class='header'>Calico: Calendar Manager</SPAN>";
             $html .= "<BR>";
-            $html .= "Calendar Name:";
+            $html .= "<SPAN class='fieldtext'>Calendar Name:</SPAN>";
             $html .= "<INPUT TYPE=\"text\" NAME=\"CalendarName\" />";
-            $html .= "<INPUT TYPE=\"submit\" NAME=\"AddCalendar\" VALUE=\"Add\" />";
+            $html .= "<INPUT CLASS='button' TYPE=\"submit\" NAME=\"AddCalendar\" VALUE=\"Add\" />";
             $html .= "<BR>";
             //@todo: Checkboxes to select a calendar, and a button to delete them.
             foreach($this->CalendarList as $calendar) {
 
                 $html .= "<INPUT TYPE=\"checkbox\" NAME=\"Calendars[]\" VALUE=\"" . base64_encode($calendar) . "\" />";
-                $html .= $calendar;
+                $html .= "<SPAN CLASS='fieldtext'>" . $calendar . "</SPAN>";
                 $html .= "<BR>";
             }
-            $html .= "<INPUT TYPE=\"submit\" NAME=\"DeleteCalendar\" VALUE=\"Delete\" />";
+            $html .= "<INPUT CLASS='button' TYPE=\"submit\" NAME=\"DeleteCalendar\" VALUE=\"Delete\" />";
             $html .= "</FORM>";
             $html .= "<FORM METHOD='post' ACTION='calico_compositecalendar.php'>";
-            $html .= "<INPUT TYPE=\"submit\"  VALUE=\"Composite Calendar\" />";
+            $html .= "<INPUT CLASS='button' TYPE=\"submit\"  VALUE=\"Composite Calendar\" />";
             $html .= "</FORM>";
             $html .= "</DIV>";
 
@@ -2433,7 +2441,7 @@ class Bitmap {
         }
 
         public function Draw() {
-            echo $this->RenderControl();
+            return $this->RenderControl();
         }
 
         public function Refresh() {
@@ -2516,36 +2524,38 @@ class Bitmap {
         private function RenderControl() {
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            $html .= "Calico: Feed Manager";
+            $html .= "<SPAN class='header'>Calico: Feed Manager</SPAN>";
             $html .= "<BR>";
             $html .= "<FORM METHOD='Post' ACTION='calico_feed.php'>";
-            $html .= "Feed Username:";
+            $html .= "<SPAN CLASS='fieldtext'>Feed Username:</SPAN>";
             $html .= "<INPUT TYPE=\"text\" NAME=\"feedusername\" />";
-            $html .= "Feed Password:";
+            $html .= "<SPAN CLASS='fieldtext'>Feed Password:</SPAN>";
             $html .= "<INPUT TYPE=\"password\" NAME=\"feedpassword\" />";
-            $html .= "Feed URL:";
+            $html .= "<SPAN CLASS='fieldtext'>Feed URL:</SPAN>";
             $html .= "<INPUT TYPE=\"text\" NAME=\"feedurl\" />";
-            $html .= "Calendar:";
+            $html .= "<SPAN CLASS='fieldtext'>Calendar:</SPAN>";
             $html .= "<SELECT NAME=\"CalendarSelect\">";
             for($i = 0; $i < count($this->CalendarData["CalendarName"]); $i++) {
                 $html .= "<OPTION VALUE=\"" . $this->CalendarData["CalendarID"][$i] . "\">" . $this->CalendarData["CalendarName"][$i] . "</OPTION>";
             }
             $html .= "</SELECT>";
-            $html .= "<INPUT TYPE=\"submit\" NAME=\"AddFeed\" VALUE=\"Add\" />";
+            $html .= "<INPUT CLASS='button' TYPE=\"submit\" NAME=\"AddFeed\" VALUE=\"Add\" />";
             $html .= "<BR>";
 
             for($i = 0; $i < count($this->FeedData["FeedURL"]); $i++) {
                 $html .= "<INPUT TYPE=\"checkbox\" NAME=\"Feeds[]\" VALUE=\"" . $this->FeedData["SuperFeedID"][$i] . "\">";
+                $html .= "<SPAN CLASS='fieldtext'>";
                 $html .= $this->FeedData["CalendarName"][$i];
                 $html .= "&nbsp;&nbsp;&nbsp;&nbsp;";
                 $html .= $this->FeedData["FeedURL"][$i];
+                $html .= "</SPAN>";
                 $html .= "<BR>";
             }
-            $html .= "<INPUT TYPE=\"submit\" NAME=\"DeleteFeed\" VALUE=\"Delete\" />";
+            $html .= "<INPUT CLASS='button' TYPE=\"submit\" NAME=\"DeleteFeed\" VALUE=\"Delete\" />";
             $html .= "<BR>";
             $html .= "</FORM>";
             $html .= "<FORM METHOD='Post' ACTION='calico_compositecalendar.php'>";
-            $html .= "<INPUT TYPE=\"submit\" VALUE=\"Composite Calendar\" />";
+            $html .= "<INPUT CLASS='button' TYPE=\"submit\" VALUE=\"Composite Calendar\" />";
             $html .= "</FORM>";
             $html .= "</DIV>";
 
@@ -2553,7 +2563,7 @@ class Bitmap {
         }
 
         public function Draw() {
-            echo $this->RenderControl();
+            return $this->RenderControl();
         }
 
         public function Refresh() {
@@ -2648,12 +2658,18 @@ class Bitmap {
         private $Event = null;
         private $HTMLName = "EventEditorControl";
         private $CSSClass = "EventEditorControl";
+        private $SelectedTime = 0;
         private $User = null;
+        private $Message = "";
 
         public function __construct($User, $Event = null) {
             $this->User = $User;
             $this->Event = $Event;
-            $this->Refresh();
+
+            if(isset($_SESSION["TIME"])) {
+                $this->SelectedTime = $_SESSION["TIME"];
+            }
+            //$this->Refresh();
         }
 
         private function GetFeedURLs() {
@@ -2691,10 +2707,13 @@ class Bitmap {
 
             $html = "";
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
-            $html .= "<SCRIPT LANGUAGE=\"javascript\" SRC=\"calendar\calendar.js\"></SCRIPT>";
+            $html .= "<FORM METHOD='post' ACTION='calico_event.php'>";
+            $html .= "<SCRIPT LANGUAGE=\"javascript\" SRC=\"calendar/calendar/calendar.js\"></SCRIPT>";
+            $html .= "<SPAN class='header'>Calico: Event Editor</SPAN>";
+            $html .= "<BR>";
             if($this->Event == null) {
                 $feeds = $this->GetFeedURLs();
-                $html .= "Feed:";
+                $html .= "<SPAN class='fieldtext'>Feed:</SPAN>";
                 $html .= "<SELECT NAME=\"SelectedFeed\">";
                 for($i = 0; $i < count($feeds); $i++) {
                     $html .= "<OPTION VALUE=\"" . $i . "\">" . $feeds[$i] . "</OPTION>";
@@ -2703,14 +2722,14 @@ class Bitmap {
                 $html .= "<BR>";
             }
 
-            $html .= "Title:";
+            $html .= "<SPAN CLASS='fieldtext'>Title:</SPAN>";
             $html .= "<INPUT TYPE=\"text\" NAME=\"Summary\" SIZE=\"40%\" VALUE=\"";
             if($this->Event != null) {
                 $html .=  $this->Event->GetSummary();
             }
             $html .= "\">"; //@todo: Possibly extract Size component here to CSS.
             $html .= "<BR>";
-            $html .= "Location:";
+            $html .= "<SPAN CLASS='fieldtext'>Location:</SPAN>";
             $html .= "<INPUT TYPE=\"text\" NAME=\"Location\" SIZE=\"40%\" VALUE=\"";
             if($this->Event != null) {
                 $html .= $this->Event->GetLocation();
@@ -2718,146 +2737,65 @@ class Bitmap {
             $html .= "\">";
             $html .= "<BR>";
 
-            $startdate = time();
-            $enddate = time();
+            $startdate = 0;
+            $enddate = 0;
             if($this->Event != null) {
                 $startdate = $this->Event->GetStartDate();
                 $enddate = $this->Event->GetEndDate();
+            }
+            else {
+                $startdate = $_SESSION["TIME"];
+                $enddate = $_SESSION["TIME"];
             }
             $html .= $this->RenderPanel("Start", $startdate);
             $html .= $this->RenderPanel("End", $enddate);
 
 
+            $html .= "<BR>";
 
-            /*
-            $html .= "Repeat:";
-            $html .= "<SELECT NAME=\"repeat\">";
+            $html .= "<SPAN CLASS='fieldtext'>Repeat:</SPAN>";
+            $html .= "<SELECT NAME=\"Rrule\">";
 
-            $options = array("Does not repeat", "Daily", "Weekly", "Every Weekday", "Bi-weekly","Monthly", "Yearly");
-            $rrules = array("", "RRULE:FREQ=DAILY", "RRULE:FREQ=WEEKLY", "RRULE:FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR", "RRULE:FREQ=WEEKLY;INTERVAL=2", "RRULE:FREQ=MONTHLY", "RRULE:FREQ=YEARLY");
+
+            $rrules = array("Does not repeat" => "", "Daily" => "RRULE:FREQ=DAILY", "Weekly" => "RRULE:FREQ=WEEKLY", "Every Weekday" => "RRULE:FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR", "Bi-weekly" => "RRULE:FREQ=WEEKLY;INTERVAL=2", "Monthly" => "RRULE:FREQ=MONTHLY", "Yearly" => "RRULE:FREQ=YEARLY");
 
             //@todo: Give this a more satisfying variable name.
             //@todo: Possibly build out this panel so it is tabbed.
-            for($i = 0; $i < count($options); $i++)
+            foreach($rrules as $key => $value)
             {
-                $html .= "<OPTION VALUE=\"" . $rrules[$i] . "\">" . $options[$i] . "</OPTION>";
+                $html .= "<OPTION VALUE=\"" . $value . "\"";
+                if($this->Event != null) {
+                    if($this->Event->GetRRule() == $value) {
+                        $html .= " selected='selected'";
+                    }
+
+                }
+                $html .= ">" . $key . "</OPTION>";
             }
             $html .= "</SELECT>";
-            */
-
-            $html .= "<script type=\"text/javascript\">
-            var tabLinks = new Array();
-            var contentDivs = new Array();
-
-            function init() {
-
-                // Grab the tab links and content divs from the page
-                var tabListItems = document.getElementById('tabs').childNodes;
-              for ( var i = 0; i < tabListItems.length; i++ ) {
-                if ( tabListItems[i].nodeName == \"LI\" ) {
-                        var tabLink = getFirstChildWithTagName( tabListItems[i], 'A' );
-                  var id = getHash( tabLink.getAttribute('href') );
-                  tabLinks[id] = tabLink;
-                  contentDivs[id] = document.getElementById( id );
-                }
-              }
-
-              // Assign onclick events to the tab links, and
-              // highlight the first tab
-              var i = 0;
-
-              for ( var id in tabLinks ) {
-                tabLinks[id].onclick = showTab;
-                tabLinks[id].onfocus = function() { this.blur() };
-                if ( i == 0 ) tabLinks[id].className = 'selected';
-                i++;
-              }
-
-              // Hide all content divs except the first
-              var i = 0;
-
-              for ( var id in contentDivs ) {
-                if ( i != 0 ) contentDivs[id].className = 'tabContent hide';
-                i++;
-              }
-            }
-
-            function showTab() {
-                var selectedId = getHash( this.getAttribute('href') );
-
-                // Highlight the selected tab, and dim all others.
-                // Also show the selected content div, and hide all others.
-              for ( var id in contentDivs ) {
-                    if ( id == selectedId ) {
-                  tabLinks[id].className = 'selected';
-                  contentDivs[id].className = 'tabContent';
-                } else {
-                  tabLinks[id].className = '';
-                  contentDivs[id].className = 'tabContent hide';
-                }
-                }
-
-              // Stop the browser following the link
-              return false;
-            }
-
-            function getFirstChildWithTagName( element, tagName ) {
-              for ( var i = 0; i < element.childNodes.length; i++ ) {
-                if ( element.childNodes[i].nodeName == tagName ) return element.childNodes[i];
-              }
-            }
-
-            function getHash( url ) {
-                var hashPos = url.lastIndexOf ( '#' );
-                return url.substring( hashPos + 1 );
-            }
-
-
-            </script>";
-
-            // Should load the javascript we need for the tabs to work.
-            $html .= "<SPAN onload=\"init()\"></SPAN>";
-            //@todo: Verify where to place this for the Repeat section.
-            $html .= "<ul id=\"tabs\">";
-            $html .= "<li><a href=\"#daily\">Daily</a></li>";
-            $html .= "<li><a href=\"#weekly\">Weekly</a></li>";
-            $html .= "<li><a href=\"#yearly\">Yearly</a></li>";
-            $html .= "</ul>";
-
-            //Prototype code for Repeat section -> tabbed.
-            $html .= "<div class=\"tabContent\" id=\"daily\">";
-            $html .= "<h2>Daily</h2>";
-            $html .= "<div>";
-            $html .= "<p>JavaScript tabs partition your Web page content into tabbed sections. Only one section at a time is visible.</p>";
-            $html .= "<p>The code is written in such a way that the page degrades gracefully in browsers that don't support JavaScript or CSS.</p>";
-            $html .= "</div>";
-            $html .= "</div>";
-
-            $html .= "<div class=\"tabContent\" id=\"weekly\">";
-            $html .= "<h2>Weekly</h2>";
-            $html .= "<div>";
-            $html .= "<p>JavaScript tabs partition your Web page content into tabbed sections. Only one section at a time is visible.</p>";
-            $html .= "<p>The code is written in such a way that the page degrades gracefully in browsers that don't support JavaScript or CSS.</p>";
-            $html .= "</div>";
-            $html .= "</div>";
-
-            $html .= "<div class=\"tabContent\" id=\"monthly\">";
-            $html .= "<h2>Monthly</h2>";
-            $html .= "<div>";
-            $html .= "<p>JavaScript tabs partition your Web page content into tabbed sections. Only one section at a time is visible.</p>";
-            $html .= "<p>The code is written in such a way that the page degrades gracefully in browsers that don't support JavaScript or CSS.</p>";
-            $html .= "</div>";
-            $html .= "</div>";
             $html .= "<BR>";
 
-            $html .= "Description:";
+
+
+
+            $html .= "<SPAN CLASS='fieldtext'>Description:</SPAN>";
             $html .= "<TEXTAREA TYPE=\"text\" NAME=\"Description\" ROWS=\"5\" COLS=\"60\" WRAP=\"soft\">";
             if($this->Event != null) {
                 $html .= $this->Event->GetDescription();
             }
             $html .= "</TEXTAREA>";
             $html .= "<BR>";
+            $html .= "<INPUT CLASS='button' TYPE='submit' NAME='NewEvent' VALUE='New'>";
+            $html .= "<INPUT CLASS='button' TYPE='submit' NAME='SaveEvent' VALUE='Save'>";
+            $html .= "<INPUT CLASS='button' TYPE='submit' NAME='DeleteEvent' VALUE='Delete'>";
+            $html .= "<INPUT CLASS='button'TYPE='submit' NAME='CompositeCalendarRedirect' VALUE='Composite Calendar'>";
 
+            $html .= "</FORM>";
+
+            $html .= "<BR>";
+            $html .= "<SPAN ='fieldtext'>";
+            $html .= $this->Message;
+            $html .= "</SPAN>";
 
             $html .= "</DIV>";
 
@@ -2866,29 +2804,36 @@ class Bitmap {
 
 
         private function RenderPanel($Prefix, $DefaultTime) {
-            require_once('calendar/classes/tc_calendar.php');
+            require_once('calendar/calendar/classes/tc_calendar.php');
 
             $html = "";
-            $html .= $Prefix . " Date:";
+            $html .= "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\"><tr><td nowrap>";
+            $html .= "<SPAN CLASS='fieldtext'>" . $Prefix . " Date:</SPAN>";
+            $html .= "</td><td>";
             //@todo: give an appropriate html name to this.
-            $myCalendar = new \TCCalendar\tc_calendar($Prefix . "datepicker", true, false); //date5->HTML name.
-            $myCalendar->setIcon("calendar/images/iconCalendar.gif");
-            $myCalendar->setDate(date('d', strtotime($DefaultTime))
-                , date('m', strtotime($DefaultTime))
-                , date('Y', strtotime($DefaultTime)));
-            $myCalendar->setDate(date('d'), date('m'), date('Y'));
-            $myCalendar->setPath("calendar/");
+            $myCalendar = new \tc_calendar($Prefix . "datepicker", true, false); //date5->HTML name.
+            $myCalendar->setIcon("calendar/calendar/images/iconCalendar.gif");
+            $myCalendar->setDate(date('d', $DefaultTime)
+                , date('m', $DefaultTime)
+                , date('Y', $DefaultTime));
+            //$myCalendar->setDate(date('d'), date('m'), date('Y'));
+            $myCalendar->setPath("calendar/calendar/");
             $myCalendar->setYearInterval(2000, 2050);
             $myCalendar->dateAllow('2008-05-13', '2015-03-01');
             $myCalendar->setDateFormat('j F Y');
             $myCalendar->setAlignment('left', 'bottom');
+            $myCalendar->zindex = 10;
 
             // This should, hypothetically, redirect the output from echo to a string.
             // It's either this, or rewrite the control.
             ob_start();
             $myCalendar->writeScript();
-            $html .= ob_get_contents();
+            $calendarhtml = ob_get_contents();
             ob_end_clean();
+            $html .= "<SPAN CLASS='fieldtext'>";
+            $html .= $calendarhtml;
+            $html .= "</SPAN>";
+            $html .= "</td><td>";
 
             //$html .= $myCalendar->writeScript();
 
@@ -2896,7 +2841,7 @@ class Bitmap {
             for($hour = 1; $hour <= 12; $hour++)
             {
                 $html .= "<OPTION value=\"" . str_pad($hour, 2, "0", STR_PAD_LEFT) . "\"";
-                if($hour == date("g", strtotime($DefaultTime))) {
+                if($hour == date("g", $DefaultTime)) {
                     $html .= " selected=\"selected\"";
                 }
                 $html .= ">" . $hour . "</OPTION>";
@@ -2906,7 +2851,7 @@ class Bitmap {
             for($minute = 0; $minute < 60; $minute++)
             {
                 $html .= "<OPTION VALUE=\"" . str_pad($minute, 2, "0", STR_PAD_LEFT) . "\"";
-                if($minute == date("i", strtotime($DefaultTime))) {
+                if($minute == date("i", $DefaultTime)) {
                     $html .= " selected=\"selected\"";
                 }
                 $html .= ">" . str_pad($minute, 2, "0", STR_PAD_LEFT) . "</OPTION>";
@@ -2914,16 +2859,17 @@ class Bitmap {
             $html .= "</SELECT>";
             $html .= "<SELECT NAME=\"" . $Prefix . "period\">"; // $_POST["startperiod"], $_POST["startperiod"]
             $html .= "<OPTION VALUE=\"AM\"";
-            if("AM" == date("A", strtotime($DefaultTime))) {
+            if("AM" == date("A", $DefaultTime)) {
                 $html .= " selected=\"selected\"";
             }
             $html .= ">AM</OPTION>";
             $html .= "<OPTION VALUE=\"PM\"";
-            if("PM" == date("A", strtotime($DefaultTime))) {
+            if("PM" == date("A", $DefaultTime)) {
                 $html .= " selected=\"selected\"";
             }
             $html .= ">PM</OPTION>";
             $html .= "</SELECT>";
+            $html .= "</tr></table>";
             $html .= "<BR>";
 
             return $html;
@@ -2931,38 +2877,70 @@ class Bitmap {
 
         private function GetPanelDateTime($Prefix) {
             $date = isset($_REQUEST[$Prefix . "datepicker"]) ? $_REQUEST[$Prefix . "datepicker"] : ""; //Year-Month-Day
-            $time = $_POST[$Prefix . "hour"] . ":" . $_POST[$Prefix . "minute"] . ":" .$_POST[$Prefix . "period"];
-
-            return strtotime($date . " " . $time);
+            $time = $_POST[$Prefix . "hour"] . ":" . $_POST[$Prefix . "minute"] . ":00" .$_POST[$Prefix . "period"];
+            $dt = strtotime($date . " " . $time);
+            return $dt;
         }
 
+        /*
         public function Create() {
-            $this->Event = \Data\Event::Create(  );
+            $this->Event = \Data\Event::Create();
         }
 
-
+        */
 
         public function Postback() {
-            if(isset($_POST["Summary"])) {
-                $summary = $_POST["Summary"];
-                $location = $_POST["Location"];
-                $description = $_POST["Description"];
-                $startdate = $this->GetPanelDateTime("Start");
-                $enddate = $this->GetPanelDateTime("End");
+            $this->Message = "";
+            if(isset($_POST["SaveEvent"])) {
+                if(isset($_POST["Summary"])) {
+                    $summary = $_POST["Summary"];
+                    $location = $_POST["Location"];
+                    $description = $_POST["Description"];
+                    $startdate = $this->GetPanelDateTime("Start");
+                    $enddate = $this->GetPanelDateTime("End");
+                    $rrule = $_POST["Rrule"];
 
-                if($this->Event == null) {
-                    $id = $_POST["SelectedFeed"];
-                    $feeddata = GetFeedData();
-                    $feedurl = $feeddata["FeedURL"][$id];
-                    $feedusername = $feeddata["FeedUsername"][$id];
-                    $feedpassword = $feeddata["FeedPassword"][$id];
-                    //@todo: Will want to finalize this later.
-                    \Data\Event::Create($feedurl, $feedusername, $feedpassword, $summary, $startdate, $enddate, $location, $description);
-                }
-                else {
+                    if($this->Event == null) {
+                        $id = $_POST["SelectedFeed"];
+                        $feeddata = $this->GetFeedData();
+                        $feedurl = $feeddata["FeedURL"][$id];
+                        $feedusername = $feeddata["FeedUsername"][$id];
+                        $feedpassword = $feeddata["FeedPassword"][$id];
 
-                    $this->Event->Update($summary, $location, $description, $startdate, $enddate);
+                        $_SESSION["EVENT"] = serialize(\Data\Event::Create($feedurl, $feedusername, $feedpassword, $summary, $startdate, $enddate, $location, $description, $rrule));
+                    }
+                    else {
+
+                        $this->Event->Update($summary, $location, $description, $startdate, $enddate, $rrule);
+                        $_SESSION["EVENT"] = serialize($this->Event);
+                    }
+                    $this->Message = "Event Saved.<BR>";
+                    \HTTP\HTTPRedirector::Redirect("calico_event.php");
                 }
+            }
+
+            if(isset($_POST["NewEvent"])) {
+                unset($_SESSION["EVENT"]);
+                //$_SESSION["EVENT"] = null;
+                $this->Event = null;
+                \HTTP\HTTPRedirector::Redirect("calico_event.php");
+            }
+
+            if(isset($_POST["DeleteEvent"]) && $this->Event != null) {
+                $this->Event->Delete();
+                unset($_SESSION["EVENT"]);
+                $this->Event = null;
+                //$_SESSION["EVENT"] = null;
+                $this->Message = "Event Deleted.<BR>";
+                \HTTP\HTTPRedirector::Redirect("calico_event.php");
+            }
+
+
+            if(isset($_POST["CompositeCalendarRedirect"])) {
+                unset($_SESSION["EVENT"]);
+                $this->Event = null;
+
+                \HTTP\HTTPRedirector::Redirect("calico_compositecalendar.php");
             }
 
             //\HTTP\HTTPRedirector::Redirect("calico_compositecalendar.php");
@@ -2974,7 +2952,7 @@ class Bitmap {
         }
 
         public function Draw() {
-            echo $this->RenderControl();
+            return $this->RenderControl();
         }
 
         public function Refresh() {

@@ -22,8 +22,12 @@ $eventeditor->Refresh();
 echo "<HTML>
 <HEAD>
 <TITLE>Calico: Event Editor</TITLE>
+<link rel=\"stylesheet\" type=\"text/css\" href=\"calico.css\">
+<link rel=\"SHORTCUT ICON\" href=\"favicon.ico\">
 </HEAD>
-<BODY>" . $eventeditor->Draw() . "</BODY>
+<BODY>";
+echo $eventeditor->Draw();
+echo "</BODY>
 </HTML>";
 /*
 foreach(array_keys($_REQUEST) as $str) {

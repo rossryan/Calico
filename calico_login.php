@@ -17,8 +17,13 @@ $login->Refresh(); // The MS equivalent of DataBind(), also known as "I have set
 echo "<HTML>
 <HEAD>
 <TITLE>Calico: Login</TITLE>
+<link rel=\"stylesheet\" type=\"text/css\" href=\"calico.css\">
+<link rel=\"SHORTCUT ICON\" href=\"favicon.ico\">
 </HEAD>
-<BODY>" . $login->Draw() . "</BODY>
+<BODY>";
+echo $login->Draw();
+
+echo "</BODY>
 </HTML>";
 
 

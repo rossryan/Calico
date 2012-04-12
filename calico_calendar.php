@@ -14,8 +14,12 @@ $calendarmanager->Refresh();
 echo "<HTML>
 <HEAD>
 <TITLE>Calico: Calendar Manager</TITLE>
+<link rel=\"stylesheet\" type=\"text/css\" href=\"calico.css\">
+<link rel=\"SHORTCUT ICON\" href=\"favicon.ico\">
 </HEAD>
-<BODY>" . $calendarmanager->Draw() . "</BODY>
+<BODY>";
+echo $calendarmanager->Draw();
+echo "</BODY>
 </HTML>";
 
 /*

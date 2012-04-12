@@ -14,8 +14,12 @@ $superfeedmanager->Refresh();
 echo "<HTML>
 <HEAD>
 <TITLE>Calico: Feed Manager</TITLE>
+<link rel=\"stylesheet\" type=\"text/css\" href=\"calico.css\">
+<link rel=\"SHORTCUT ICON\" href=\"favicon.ico\">
 </HEAD>
-<BODY>" . $superfeedmanager->Draw() . "</BODY>
+<BODY>";
+echo $superfeedmanager->Draw();
+echo "</BODY>
 </HTML>";
 
 /*

@@ -938,6 +938,7 @@ class Feed {
                 
                 $data = str_replace("\r\n ", "", $data);
                 $data = str_replace("\\n", "\n", $data);
+                $data = str_replace("\\N", "\n", $data);
                 $data = str_replace("\,", ",", $data);
                 $data = str_replace("\\\"", "\"", $data);
                 $data = str_replace("\;", ";", $data);

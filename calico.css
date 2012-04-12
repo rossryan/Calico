@@ -30,6 +30,12 @@ footer, header, hgroup, menu, nav, section {
 }
 body {
 	line-height: 1;
+    background-image:url('DrexelLogo.png');
+    background-repeat:no-repeat;
+    background-position:right top;
+    background-color:#21467B;
+    position:relative;
+    z-index:0;
 }
 ol, ul {
 	list-style: none;
@@ -47,7 +53,133 @@ table {
 	border-spacing: 0;
 }
 
+.header {
+    color:#ffe27b;
+    font-family:arial;
+    font-size:40px;
+    font-weight:bold;
+    padding:6px 24px;
+    text-decoration:none;
+    text-shadow:1px 1px 0px #1570cd;
 
+}
+
+.subheader {
+    color:#ffe27b;
+    font-family:arial;
+    font-size:24px;
+    font-weight:bold;
+    padding:6px 24px;
+    text-decoration:none;
+    text-shadow:1px 1px 0px #1570cd;
+
+}
+
+.fieldtext {
+    color:#ffe27b;
+    font-family:arial;
+    font-weight:bold;
+    padding:6px 24px;
+    text-decoration:none;
+    text-shadow:1px 1px 0px #1570cd;
+
+}
+
+.button {
+    -moz-box-shadow:inset 0px 1px 0px 0px #d9d9d9;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #d9d9d9;
+    box-shadow:inset 0px 1px 0px 0px #d9d9d9;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #1e62d0), color-stop(1, #21467b) );
+    background:-moz-linear-gradient( center top, #1e62d0 5%, #21467b 100% );
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#1e62d0', endColorstr='#21467b');
+    background-color:#1e62d0;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #337fed;
+    display:inline-block;
+    color:#ffe27b;
+    font-family:arial;
+    font-size:15px;
+    font-weight:bold;
+    padding:6px 24px;
+    text-decoration:none;
+    text-shadow:1px 1px 0px #1570cd;
+}.button:hover {
+     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #21467b), color-stop(1, #1e62d0) );
+     background:-moz-linear-gradient( center top, #21467b 5%, #1e62d0 100% );
+     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#21467b', endColorstr='#1e62d0');
+     background-color:#21467b;
+ }.button:active {
+      position:relative;
+      top:1px;
+  }
+
+  .errortext {
+      color:red;
+      font-family:arial;
+      font-weight:bold;
+      padding:6px 24px;
+      text-decoration:none;
+      /*text-shadow:1px 1px 0px #1570cd;*/
+
+
+  }
+
+.slice {
+    -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    box-shadow:inset 0px 1px 0px 0px #ffffff;
+    background-color:transparent;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #dcdcdc;
+    display:inline-block;
+    color:#ffe27b;
+    font-family:arial;
+    font-size:15px;
+    font-weight:bold;
+    /*padding:6px 24px;*/
+    text-decoration:none;
+    text-shadow:1px 1px 0px #1570cd;
+
+}
+
+.event {
+    -moz-box-shadow:inset 0px 1px 0px 0px #d9d9d9;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #d9d9d9;
+    box-shadow:inset 0px 1px 0px 0px #d9d9d9;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #1e62d0), color-stop(1, #21467b) );
+    background:-moz-linear-gradient( center top, #1e62d0 5%, #21467b 100% );
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#1e62d0', endColorstr='#21467b');
+    background-color:#1e62d0;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #337fed;
+    display:inline-block;
+    color:#ffe27b;
+    font-family:arial;
+    font-size:15px;
+    font-weight:bold;
+    text-decoration:none;
+    text-shadow:1px 1px 0px #1570cd;
+}.event:hover {
+     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #21467b), color-stop(1, #1e62d0) );
+     background:-moz-linear-gradient( center top, #21467b 5%, #1e62d0 100% );
+     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#21467b', endColorstr='#1e62d0');
+     background-color:#21467b;
+ }.event:active {
+      position:relative;
+      top:1px;
+  }
+
+
+
+}
+
+/*
 
 select { 
 	background-image: url('arrow.gif');
@@ -219,9 +351,9 @@ select {
 	
 	transition: left 2s;
 	-ms-transition: left 2s;
-	-moz-transition: left 2s; /* Firefox 4 */
-	-webkit-transition: left 2s; /* Safari and Chrome */
-	-o-transition: left 2s; /* Opera */
+	-moz-transition: left 2s;
+	-webkit-transition: left 2s;
+	-o-transition: left 2s;
 	
 	
 }.slidingPane:hover {
@@ -278,3 +410,4 @@ select {
 }
 
 
+*/
