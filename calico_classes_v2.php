@@ -1005,6 +1005,8 @@ namespace Data {
         private $UID = "";
         private $StartDate = null;
         private $EndDate = null;
+        private $StartDates = Array();
+        private $EndDates = Array();
         private $XMozGeneration = 0;
         private $DateStamp = null;
         private $Created = null;
@@ -1052,6 +1054,16 @@ namespace Data {
             return $this->RRule;
         }
 
+        public function GetStartDates() {
+            return $this->StartDates();
+        }
+
+        public function GetEndDates() {
+            return $this->EndDates();
+        }
+
+
+
         //@todo: Verify that this is the correct, or at least, a very good idea. A default constructor that just takes in the string containing VEVENT information (raw).
         public function __construct($FeedURL, $FeedUsername, $FeedPassword, $ETAG, $SuperFeedURL) {
             //ParseVEvent($String);
@@ -1093,6 +1105,39 @@ namespace Data {
 
         public function Refresh() {
             $this->Report();
+            //$this->ApplyRRule();
+        }
+
+        private function ApplyRRule() {
+            //$this->= Array();
+            switch($this->RRule) {
+                case "":
+                    break;
+                case "RRULE:FREQ=DAILY":
+                    strtotime("+1 day");
+                    break;
+                case "RRULE:FREQ=WEEKLY":
+                    strtotime("+1 week");
+                    break;
+                case "RRULE:FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR":
+                    break;
+                case "RRULE:FREQ=WEEKLY;INTERVAL=2":
+                    strtotime("+2 weeks");
+                    break;
+                case "RRULE:FREQ=MONTHLY":
+                    strtotime("+1 month");
+                    break;
+                case "RRULE:FREQ=YEARLY":
+                    strtotime("+1 year");
+                    break;
+            }
+
+
+
+
+
+
+
         }
 
         public function Report() {
@@ -1438,11 +1483,13 @@ namespace GUI {
             return $html;
         }
 
-        private function GetDefaultView() {
+        public function GetDefaultView() {
             $query = "SELECT `DefaultView` FROM `calico`.`settings` WHERE `UserID` = " . $this->User->GetUserID() . ";";
             $data = \SQL\SQL::DataQuery($query);
             $row = mysql_fetch_array($data);
             $this->DefaultView = $row['DefaultView'];
+
+            return $this->DefaultView;
         }
 
         public function Refresh() {
@@ -1536,7 +1583,7 @@ namespace GUI {
         }
 
         public function Postback() {
-            //if(isset($_POST["DisplayedCalendars"])) {
+            //@todo: Bug in here. Has to do with how PHP + $_Post does things. Not going to be able to fix it (too sleep deprived).
             $this->Refresh();
                 for($i = 0; $i < count($this->CalendarData["IsDisplayed"]); $i++) {
                     $this->CalendarData["IsDisplayed"][$i] = 0;
@@ -1920,14 +1967,148 @@ class Bitmap {
 
         public function RenderMonthly() {
             $html = "";
-            //@todo: Get a list of 5 weeks: the current one, 2 weeks prior, 2 weeks following.
-            // "Month + Year:"
 
-            $monthstart = strtotime(date("Y-m", $this->SelectedTime));
-            $monthend = strtotime("+1 month", strtotime(date("Y-m", $this->SelectedTime)));
 
-            $events = GetRelevantEvents($monthstart, $monthend);
+            $weekstart = strtotime("-" . date("w", $this->SelectedTime) . " day", strtotime(date("Y-m-d", $this->SelectedTime)));
+            $weekend = strtotime("+1 week", strtotime(date("Y-m-d", $weekstart)));
 
+            $weekstarts = Array(strtotime("-2 weeks", $weekstart), strtotime("-1 week", $weekstart), $weekstart, strtotime("+1 week", $weekstart), strtotime("+2 weeks", $weekstart));
+            $weekends = Array(strtotime("-2 weeks", $weekend), strtotime("-1 week", $weekend), $weekend, strtotime("+1 week", $weekend), strtotime("+2 weeks", $weekend));
+            for($k = 0; $k < count($weekstarts); $k++) {
+            $events = $this->GetRelevantEvents($weekstarts[$k], $weekends[$k]);
+            //$increment = 30 * 60; // 30 minutes
+            $segments = Array();
+            $segments["Start"] = Array();
+            $segments["End"] = Array();
+            //$segments["Width"] = Array(); // The width of each event per day.
+
+            for($t = $weekstarts[$k]; $t < $weekends[$k]; $t = strtotime("+1 day", $t)) {
+                $segments["Start"][] = $t;
+                $segments["End"][] = strtotime("+1 day", $t);
+
+            }
+
+            //Newline for HTML buttons: &#10;
+
+
+            //4% for each div, 8% for the column headers.
+            //7 days, with row headers -> 100/8 -> 12.5, 7 * 12.5 = 87.5, 13% for, 91%, 9%
+
+            $html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
+            $html .= "<FORM method='post' action='calico_compositecalendar.php'>";
+            //$html .= "<DIV NAME=\"Calendar\">";
+            //$html .= "<DIV CLASS='slice' style='position:absolute;top:0%;left:0%;width:12%;height:2%;z-index:1;'>";
+            //$html .= "<B>" . date("j", $segment) . "</B>&nbsp;&nbsp;&nbsp;&nbsp;" . date("l", $segment);
+            //$html .= "</DIV>";
+
+
+            $i = 0;
+            foreach($segments["Start"] as $segment) {
+                $html .= "<DIV  CLASS='slice' style='position:absolute;top:" . $k * 20 . "%;left:" . $i * 12 . "%;width:12%;height:20%;z-index:1;'>";
+                $html .= "<B>" . date("j", $segment) . "</B>&nbsp;&nbsp;" . date("l", $segment);
+                $html .= "</DIV>";
+                $i++;
+            }
+
+            /*
+            $i = 1;
+            for($t = $segments["Start"][0]; $t < $segments["End"][0]; $t += $increment) {
+                //Row headers.
+                $html .= "<DIV  CLASS='slice' style='position:absolute;top:" . $i * 2 . "%;left:0%;width:12%;height:2%;z-index:1;text-align:center;'>";
+                //if(date("i", $t) == 0) {
+                $html .= date("g", $t) . ":" . date("i", $t) . "<SPAN Style='font-size:xx-small; vertical-align:top;'>" . date("A", $t) . "</SPAN>";
+                //}
+                $html .= "</DIV>";
+                $i++;
+            }
+            */
+
+            /*
+             * Hmm. I need to precalculate the actual html strings, per day, then divide their width according to the number per day.
+             * Going to need a function that splits events according to dates...so an event that covers two days can be split into two buttons.
+             * if(event > endtime && event < starttime) {$html .= "<button value="" name="" onclick=\"\">"}
+             */
+
+            //@todo: Review this design. It should be setup so that I can calculate just how many dates an event will cover, as well as the number of events per day.
+            //@todo: Cycle through each segment.
+            for($t = 0; $t < count($segments["Start"]); $t++) {
+                $segmentstart = $segments["Start"][$t]; // For weekly, this is days. Segment (of time) Start here = CurrentDay @ 12:00AM
+                $segmentend = $segments["End"][$t]; //Segment (of time) End here = NextDay @ 12:00AM
+
+                $divevents = Array();
+                $bitmap = new \GUI\Bitmap(1);
+                //echo "New Bitmap<BR>";
+                foreach($events as $event) {
+
+                    $roundstart = $this->RoundStartTime($event->GetStartDate());
+                    if($roundstart < $segmentstart) {
+                        $roundstart = $segmentstart;
+                    }
+
+                    $roundend = $this->RoundEndTime($event->GetEndDate());
+                    if($roundend > $segmentend) {
+                        $roundend = $segmentend;
+                    }
+
+                    if($this->TimeRangeContains($segmentstart, $segmentend, $roundstart, $roundend)) {
+                        //$startrow = (int)(((int)(date("H", $roundstart))) * 2 + ((int)(date("i", $roundstart))) / ((int)(30)));
+                        //$endrow = (int)(((int)date("H", $roundend)) * 2 + (((int)(date("i", $roundend))) / (int)(30)));
+
+                        $startrow = 0;
+                        $endrow = 1;
+                        $numrows = 1;
+                        /*
+                        if($roundend == $segmentend) {
+                            $endrow = 1;
+                        }
+
+                        $numrows =  $endrow - $startrow;
+                        */
+                        /*
+                        echo "Start Time: " . date("j F Y H:i:s", $event->GetStartDate()) . "<BR>";
+                        echo "End Time: " . date("j F Y H:i:s", $event->GetEndDate()) . "<BR>";
+                        echo "Rounded Start Time: " . date("j F Y H:i:s", $roundstart) . "<BR>";
+                        echo "Rounded End Time: " . date("j F Y H:i:s", $roundend) . "<BR>";
+                        echo "Start Row: " . $startrow . "<BR>";
+                        echo "End Row: " . $endrow . "<BR>";
+                        echo "Num Rows: " . $numrows . "<BR>";
+                        */
+
+
+                        $column = $bitmap->FindEmpty($startrow, $numrows);
+                        //echo "Found Empty Column: " . $column . "<BR>";
+                        $bitmap->FillRows($startrow, $numrows, $column);
+                        //echo "Filling Column<BR>";
+
+                        $divevents[] = new \GUI\DivEvent($event, $roundstart, $roundend, $column, $startrow, $numrows);
+                    }
+                }
+
+
+                //echo (int)(15 / $bitmap->GetNumColumns()) . "<BR>";
+                $l = 0;
+                foreach($divevents as $divevent) {
+                    $html .= "<Button TYPE='submit' NAME='EVENTBUTTON' VALUE='" . base64_encode(implode("<CALICO/>", array($divevent->GetEvent()->GetSuperFeedURL(), $divevent->GetEvent()->GetFeedURL(), $divevent->GetEvent()->GetETAG()))) . "' CLASS='event' style='position:absolute;top:" . (20 * $k  + 5 + ((int)(15 / $bitmap->GetNumColumns())) * $l) . "%;left:" . (12 * $t) . "%;width: 12%;height:" . 15 / $bitmap->GetNumColumns() . "%;z-index:2' '>";
+                    $html .= "<BR>";
+                    $html .= $divevent->GetEvent()->GetSummary();
+                    $html .= "<BR>";
+                    $html .= "</Button>";
+                    $l++;
+
+                }
+            }
+
+
+
+
+            // Need to create divs, filled with buttons, that span each segment, and are positioned over the above divs.
+            // Relative positioning, with percentage-based sizes should work here.
+            //$html .= "</DIV>";
+            $html .= "</FORM>";
+            $html .= "</DIV>";
+            $html .= "<BR>";
+
+            }
 
             return $html;
 
@@ -1939,7 +2120,7 @@ class Bitmap {
         public function RenderWeekly() {
             $html = "";
 
-            
+
             $weekstart = strtotime("-" . date("w", $this->SelectedTime) . " day", strtotime(date("Y-m-d", $this->SelectedTime)));
             $weekend = strtotime("+1 week", strtotime(date("Y-m-d", $weekstart)));
 
@@ -2087,7 +2268,108 @@ class Bitmap {
             $daystart = strtotime(date("Y-m-d", $this->SelectedTime));
             $dayend = strtotime("+1 day", strtotime(date("Y-m-d", $this->SelectedTime)));
 
-            $events = GetRelevantEvents($daystart, $dayend);
+            //$html = "";
+
+
+            //$weekstart = strtotime("-" . date("w", $this->SelectedTime) . " day", strtotime(date("Y-m-d", $this->SelectedTime)));
+            //$weekend = strtotime("+1 week", strtotime(date("Y-m-d", $weekstart)));
+            //echo "Start Date:" . date("Y-m-d H:i:s", $daystart) . "<BR>";
+            //echo "End Date:" . date("Y-m-d H:i:s", $dayend) . "<BR>";
+
+            $events = $this->GetRelevantEvents($daystart, $dayend);
+            $increment = 30 * 60; // 30 minutes
+            $segments = Array();
+            $segments["Start"] = Array();
+            $segments["End"] = Array();
+            //$segments["Width"] = Array(); // The width of each event per day.
+
+            for($t = $daystart; $t < $dayend; $t = strtotime("+1 day", $t)) {
+                $segments["Start"][] = $t;
+                $segments["End"][] = strtotime("+1 day", $t);
+
+            }
+
+
+            $html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
+            $html .= "<FORM method='post' action='calico_compositecalendar.php'>";
+            //$html .= "<DIV NAME=\"Calendar\">";
+            $html .= "<DIV CLASS='slice' style='position:absolute;top:0%;left:0%;width:12%;height:2%;z-index:1;'>";
+            //$html .= "<B>" . date("j", $segment) . "</B>&nbsp;&nbsp;&nbsp;&nbsp;" . date("l", $segment);
+            $html .= "</DIV>";
+
+            $i = 1;
+            foreach($segments["Start"] as $segment) {
+                $html .= "<DIV  CLASS='slice' style='position:absolute;top:0%;left:" . $i * 12 . "%;width:12%;height:2%;z-index:1;'>";
+                $html .= "<B>" . date("j", $segment) . "</B>" . date("l", $segment);
+                $html .= "</DIV>";
+                $i++;
+            }
+
+            $i = 1;
+            for($t = $segments["Start"][0]; $t < $segments["End"][0]; $t += $increment) {
+                //Row headers.
+                $html .= "<DIV  CLASS='slice' style='position:absolute;top:" . $i * 2 . "%;left:0%;width:12%;height:2%;z-index:1;text-align:center;'>";
+                //if(date("i", $t) == 0) {
+                $html .= date("g", $t) . ":" . date("i", $t) . "<SPAN Style='font-size:xx-small; vertical-align:top;'>" . date("A", $t) . "</SPAN>";
+                //}
+                $html .= "</DIV>";
+                $i++;
+            }
+
+            for($t = 0; $t < count($segments["Start"]); $t++) {
+                $segmentstart = $segments["Start"][$t]; // For weekly, this is days. Segment (of time) Start here = CurrentDay @ 12:00AM
+                $segmentend = $segments["End"][$t]; //Segment (of time) End here = NextDay @ 12:00AM
+
+                $divevents = Array();
+                $bitmap = new \GUI\Bitmap(48);
+                foreach($events as $event) {
+
+                    $roundstart = $this->RoundStartTime($event->GetStartDate());
+                    if($roundstart < $segmentstart) {
+                        $roundstart = $segmentstart;
+                    }
+
+                    $roundend = $this->RoundEndTime($event->GetEndDate());
+                    if($roundend > $segmentend) {
+                        $roundend = $segmentend;
+                    }
+
+                    if($this->TimeRangeContains($segmentstart, $segmentend, $roundstart, $roundend)) {
+                        $startrow = (int)(((int)(date("H", $roundstart))) * 2 + ((int)(date("i", $roundstart))) / ((int)(30)));
+                        $endrow = (int)(((int)date("H", $roundend)) * 2 + (((int)(date("i", $roundend))) / (int)(30)));
+                        if($roundend == $segmentend) {
+                            $endrow = 48;
+                        }
+
+                        $numrows =  $endrow - $startrow;
+
+                        $column = $bitmap->FindEmpty($startrow, $numrows);
+                        $bitmap->FillRows($startrow, $numrows, $column);
+
+                        $divevents[] = new \GUI\DivEvent($event, $roundstart, $roundend, $column, $startrow, $numrows);
+                    }
+                }
+
+
+
+                foreach($divevents as $divevent) {
+                    $html .= "<Button TYPE='submit' NAME='EVENTBUTTON' VALUE='" . base64_encode(implode("<CALICO/>", array($divevent->GetEvent()->GetSuperFeedURL(), $divevent->GetEvent()->GetFeedURL(), $divevent->GetEvent()->GetETAG()))) . "' CLASS='event' style='position:absolute;top:" . ($divevent->GetRowIndexStart() * 2 + 2) . "%;left:" . ((12 * $t + 12) + (12 / $bitmap->GetNumColumns()) * $divevent->GetColumnIndex()) . "%;width:" . 12 / $bitmap->GetNumColumns() . "%;height:" . 2 * $divevent->GetNumRows() . "%;z-index:2' '>";
+                    $html .= "<BR>";
+                    $html .= $divevent->GetEvent()->GetSummary();
+                    $html .= "<BR>";
+                    $html .= "</Button>";
+
+                }
+            }
+
+
+
+
+
+            $html .= "</FORM>";
+            $html .= "</DIV>";
+
+            return $html;
 
 
             return $html;
@@ -2110,8 +2392,11 @@ class Bitmap {
                 $newcalendar->Refresh();
                 $this->CalendarList[] = $newcalendar;
             }
+
+
             $this->CompositeDropDown->Refresh();
             $this->CompositeCheckBox->Refresh();
+            $this->View = $this->CompositeDropDown->GetDefaultView();
 
         }
 
