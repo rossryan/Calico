@@ -2143,7 +2143,7 @@ class Bitmap {
             //4% for each div, 8% for the column headers.
             //7 days, with row headers -> 100/8 -> 12.5, 7 * 12.5 = 87.5, 13% for, 91%, 9%
 
-            $html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
+            $html .= "<DIV class='slice' style=\"position:absolute;width:100%;height:100%;min-height:1000px;\">";
             $html .= "<FORM method='post' action='calico_compositecalendar.php'>";
             //$html .= "<DIV NAME=\"Calendar\">";
             $html .= "<DIV CLASS='slice' style='position:absolute;top:0%;left:0%;width:12%;height:2%;z-index:1;'>";
