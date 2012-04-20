@@ -1870,7 +1870,10 @@ class Bitmap {
             $html .= "</FORM>";
             $html .= "</DIV>";
             $html .="<BR><BR><BR>";
+            //@todo: Abstract everything.
+            $html .= "<DIV class='slice' style=\"position:absolute;width:100%;height:100%;min-height:1000px;\">";
             $html .= $this->RenderView();
+            $html .= "</DIV>";
 
             $html .= "</DIV>";
 
@@ -1994,7 +1997,7 @@ class Bitmap {
             //4% for each div, 8% for the column headers.
             //7 days, with row headers -> 100/8 -> 12.5, 7 * 12.5 = 87.5, 13% for, 91%, 9%
 
-            $html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
+            //$html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
             $html .= "<FORM method='post' action='calico_compositecalendar.php'>";
             //$html .= "<DIV NAME=\"Calendar\">";
             //$html .= "<DIV CLASS='slice' style='position:absolute;top:0%;left:0%;width:12%;height:2%;z-index:1;'>";
@@ -2105,7 +2108,7 @@ class Bitmap {
             // Relative positioning, with percentage-based sizes should work here.
             //$html .= "</DIV>";
             $html .= "</FORM>";
-            $html .= "</DIV>";
+            //$html .= "</DIV>";
             $html .= "<BR>";
 
             }
@@ -2143,7 +2146,7 @@ class Bitmap {
             //4% for each div, 8% for the column headers.
             //7 days, with row headers -> 100/8 -> 12.5, 7 * 12.5 = 87.5, 13% for, 91%, 9%
 
-            $html .= "<DIV class='slice' style=\"position:absolute;width:100%;height:100%;min-height:1000px;\">";
+
             $html .= "<FORM method='post' action='calico_compositecalendar.php'>";
             //$html .= "<DIV NAME=\"Calendar\">";
             $html .= "<DIV CLASS='slice' style='position:absolute;top:0%;left:0%;width:12%;height:2%;z-index:1;'>";
@@ -2256,7 +2259,7 @@ class Bitmap {
             // Relative positioning, with percentage-based sizes should work here.
             //$html .= "</DIV>";
             $html .= "</FORM>";
-            $html .= "</DIV>";
+
 
             return $html;
 
@@ -2290,7 +2293,7 @@ class Bitmap {
             }
 
 
-            $html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
+            //$html .= "<DIV style=\"position:absolute;width:100%;height:100%;\">";
             $html .= "<FORM method='post' action='calico_compositecalendar.php'>";
             //$html .= "<DIV NAME=\"Calendar\">";
             $html .= "<DIV CLASS='slice' style='position:absolute;top:0%;left:0%;width:12%;height:2%;z-index:1;'>";
@@ -2299,7 +2302,7 @@ class Bitmap {
 
             $i = 1;
             foreach($segments["Start"] as $segment) {
-                $html .= "<DIV  CLASS='slice' style='position:absolute;top:0%;left:" . $i * 12 . "%;width:12%;height:2%;z-index:1;'>";
+                $html .= "<DIV  CLASS='slice' style='position:absolute;top:0%;left:12%;width:88%;height:2%;z-index:1;'>";
                 $html .= "<B>" . date("j", $segment) . "</B>" . date("l", $segment);
                 $html .= "</DIV>";
                 $i++;
@@ -2353,7 +2356,7 @@ class Bitmap {
 
 
                 foreach($divevents as $divevent) {
-                    $html .= "<Button TYPE='submit' NAME='EVENTBUTTON' VALUE='" . base64_encode(implode("<CALICO/>", array($divevent->GetEvent()->GetSuperFeedURL(), $divevent->GetEvent()->GetFeedURL(), $divevent->GetEvent()->GetETAG()))) . "' CLASS='event' style='position:absolute;top:" . ($divevent->GetRowIndexStart() * 2 + 2) . "%;left:" . ((12 * $t + 12) + (12 / $bitmap->GetNumColumns()) * $divevent->GetColumnIndex()) . "%;width:" . 12 / $bitmap->GetNumColumns() . "%;height:" . 2 * $divevent->GetNumRows() . "%;z-index:2' '>";
+                    $html .= "<Button TYPE='submit' NAME='EVENTBUTTON' VALUE='" . base64_encode(implode("<CALICO/>", array($divevent->GetEvent()->GetSuperFeedURL(), $divevent->GetEvent()->GetFeedURL(), $divevent->GetEvent()->GetETAG()))) . "' CLASS='event' style='position:absolute;top:" . ($divevent->GetRowIndexStart() * 2 + 2) . "%;left:" . ((12 * $t + 12) + (12 / $bitmap->GetNumColumns()) * $divevent->GetColumnIndex()) . "%;width:" . 88 / $bitmap->GetNumColumns() . "%;height:" . 2 * $divevent->GetNumRows() . "%;z-index:2' '>";
                     $html .= "<BR>";
                     $html .= $divevent->GetEvent()->GetSummary();
                     $html .= "<BR>";
@@ -2367,9 +2370,9 @@ class Bitmap {
 
 
             $html .= "</FORM>";
-            $html .= "</DIV>";
+            //$html .= "</DIV>";
 
-            return $html;
+            //return $html;
 
 
             return $html;
