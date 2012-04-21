@@ -1543,14 +1543,19 @@ namespace GUI {
             $html .= "<DIV NAME=" . $this->HTMLName . " CLASS=" . $this->CSSClass .  ">";
             $html .= "<FORM METHOD='post' action='calico_compositecalendar.php'>";
             $html .= "<SPAN class='fieldtext'>Calendars: </SPAN>";
-            foreach($this->CalendarData["CalendarName"] as $key => $value) {
-                $html .= "<INPUT TYPE=\"checkbox\" NAME=\"DisplayedCalendars[]\" VALUE=\"" . $key . "\"";
-                if($this->CalendarData["IsDisplayed"][$key] == 1){
+            for($i = 0; $i < count($this->CalendarData["CalendarID"]);$i++) {
+                $html .= "<INPUT TYPE=\"checkbox\" NAME='" . $this->CalendarData["CalendarID"][$i] . "'";
+                if($this->CalendarData["IsDisplayed"][$i] == 1){
                     $html .= " CHECKED";
                 }
-                $html .= " onchange='this.form.submit()'>";
-                $html .= "<SPAN CLASS='fieldtext'>" . $value . "</SPAN>";
+                $html .= " onchange='javascript: if(this.checked==true) { this.form.CheckboxValue.value = \"true\"; } else if(this.checked==false) { this.form.CheckboxValue.value = \"false\"; } this.form.CheckboxCalendarID.value = " . $this->CalendarData["CalendarID"][$i] . ";this.form.submit();'>";
+
+                //@todo: Swap to manually submitting the values via javascript to get around the 'bug'.
+                //Prototype function-> this.form.CalendarID.value = !this.form.CalendarID.value; this.form.submit();
+                $html .= "<SPAN CLASS='fieldtext'>" . $this->CalendarData["CalendarName"][$i] . "</SPAN>";
             }
+            $html .= "<input type='hidden' name='CheckboxCalendarID'>";
+            $html .= "<input type='hidden' name='CheckboxValue'>";
             $html .= "</FORM>";
             $html .= "</DIV>";
 
@@ -1574,10 +1579,9 @@ namespace GUI {
 
             while($row = mysql_fetch_array($data))
             {
-
-                $this->CalendarData["CalendarName"][$row["CalendarID"]] = base64_decode($row["CalendarName"]);
-                $this->CalendarData["IsDisplayed"][$row["CalendarID"]] = $row["IsDisplayed"];
-
+                $this->CalendarData["CalendarName"][] = base64_decode($row["CalendarName"]);
+                $this->CalendarData["IsDisplayed"][] = $row["IsDisplayed"];
+                $this->CalendarData["CalendarID"][] = $row["CalendarID"];
             }
 
         }
@@ -1585,6 +1589,41 @@ namespace GUI {
         public function Postback() {
             //@todo: Bug in here. Has to do with how PHP + $_Post does things. Not going to be able to fix it (too sleep deprived).
             $this->Refresh();
+
+            
+
+            //@todo: Temporarily disabled the code below. Let's see what we catch with individual names.
+            for($i = 0; $i < count($this->CalendarData["CalendarID"]); $i++) {
+
+                if(isset($_POST["CheckboxCalendarID"])) {
+
+                    if($_POST["CheckboxValue"] == "true") {
+                        //$query = "UPDATE `CalendarName`, `CalendarID`, `IsDisplayed` FROM `calico`.`calendars` WHERE `UserID` = " . $this->User->GetUserID() . ";";
+                        $query = "UPDATE `calico`.`calendars` SET `IsDisplayed` = 1 WHERE `UserID` = " . $this->User->GetUserID() . " AND `CalendarID` = " . $_POST["CheckboxCalendarID"] . ";";
+                        \SQL\SQL::NonDataQuery($query);
+
+
+                    }
+                    else if($_POST["CheckboxValue"] == "false") {
+                        $query = "UPDATE `calico`.`calendars` SET `IsDisplayed` = 0 WHERE `UserID` = " . $this->User->GetUserID() . " AND `CalendarID` = " . $_POST["CheckboxCalendarID"] . ";";
+                        \SQL\SQL::NonDataQuery($query);
+                        //"UPDATE `CalendarName`, `CalendarID`, `IsDisplayed` FROM `calico`.`calendars` WHERE `UserID` = " . $this->User->GetUserID() . ";";
+
+
+                    }
+
+
+                }
+
+                //echo $this->CalendarData["CalendarID"][$i] . " is set with a value of " . $_POST[$this->CalendarData["CalendarID"][$i]] . ".<BR>";
+                //echo $_POST["CheckboxValue"] . "<BR>";
+                //echo $_POST["CheckboxCalendarID"] . "<BR>";
+
+
+
+            }
+
+            /*
                 for($i = 0; $i < count($this->CalendarData["IsDisplayed"]); $i++) {
                     $this->CalendarData["IsDisplayed"][$i] = 0;
                 }
@@ -1597,11 +1636,10 @@ namespace GUI {
             }
 
                 foreach($this->CalendarData["IsDisplayed"] as $key => $value) {
-                    $query = "UPDATE `calico`.`calendars` SET `IsDisplayed` = " . $value . " WHERE `UserID` = " . $this->User->GetUserID() . " AND `CalendarID` = " . $key . ";";
-                    \SQL\SQL::NonDataQuery($query);
+
                 }
 
-
+            */
         }
 
         public function CSSClass($CSSClass = null) {
@@ -2245,6 +2283,7 @@ class Bitmap {
                 foreach($divevents as $divevent) {
                     $html .= "<Button TYPE='submit' NAME='EVENTBUTTON' VALUE='" . base64_encode(implode("<CALICO/>", array($divevent->GetEvent()->GetSuperFeedURL(), $divevent->GetEvent()->GetFeedURL(), $divevent->GetEvent()->GetETAG()))) . "' CLASS='event' style='position:absolute;top:" . ($divevent->GetRowIndexStart() * 2 + 2) . "%;left:" . ((12 * $t + 12) + (12 / $bitmap->GetNumColumns()) * $divevent->GetColumnIndex()) . "%;width:" . 12 / $bitmap->GetNumColumns() . "%;height:" . 2 * $divevent->GetNumRows() . "%;z-index:2' '>";
                     $html .= "<BR>";
+                    $html .= date("H:i:s A", $divevent->GetEvent()->GetStartDate()) . " - " . date("H:i:s A", $divevent->GetEvent()->GetEndDate()) . "<BR>";
                     $html .= $divevent->GetEvent()->GetSummary();
                     $html .= "<BR>";
                     $html .= "</Button>";
@@ -3061,6 +3100,11 @@ class NewAccount {
                 $html .= ">" . $key . "</OPTION>";
             }
             $html .= "</SELECT>";
+
+
+            $html .= "<input type='text' id='input1' value='0'>";
+            $html .= "<input type='button' value='^' onclick='document.getElementById(\"input1\").value++;'>";
+            $html .= "<input type='button' value='v' onclick='document.getElementById(\"input1\").value--;'>";
             $html .= "<BR>";
 
 
